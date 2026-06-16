@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>dev.tommyjs</groupId>
+    <artifactId>craftreel-example</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <properties>
+        <maven.compiler.release>17</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <repositories>
+        <repository><id>tommyjs-releases</id><url>https://repo.tommyjs.dev/repository/maven-releases/</url></repository>
+        <repository><id>spigot-repo</id><url>https://hub.spigotmc.org/nexus/content/groups/public/</url></repository>
+        <repository><id>jitpack.io</id><url>https://jitpack.io</url></repository>
+        <repository><id>minecraft-libraries</id><url>https://libraries.minecraft.net</url></repository>
+        <repository><id>codemc-releases</id><url>https://repo.codemc.io/repository/maven-releases/</url></repository>
+        <repository><id>codemc-snapshots</id><url>https://repo.codemc.io/repository/maven-snapshots/</url></repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>dev.tommyjs</groupId>
+            <artifactId>craftreel</artifactId>
+            <version>0.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>1.8.8-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.mojang</groupId>
+            <artifactId>authlib</artifactId>
+            <version>1.5.21</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.retrooper</groupId>
+            <artifactId>packetevents-spigot</artifactId>
+            <version>2.12.2</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>craftreel-example</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals><goal>shade</goal></goals>
+                        <configuration>
+                            <outputFile>${project.basedir}/server/plugins/craftreel-example.jar</outputFile>
+                            <filters>
+                                <filter><artifact>*:*</artifact><excludes><exclude>META-INF/versions/**</exclude></excludes></filter>
+                            </filters>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            </transformers>
+                            <relocations>
+                                <relocation><pattern>io.netty</pattern><shadedPattern>dev.tommyjs.craftreelexample.lib.netty</shadedPattern></relocation>
+                                <relocation><pattern>net.bytebuddy</pattern><shadedPattern>dev.tommyjs.craftreelexample.lib.bytebuddy</shadedPattern></relocation>
+                                <relocation><pattern>fr.mrmicky.fastboard</pattern><shadedPattern>dev.tommyjs.craftreelexample.lib.fastboard</shadedPattern></relocation>
+                            </relocations>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
