@@ -34,12 +34,22 @@ public final class TextRecorder {
             r -> attach(r, CraftReelProtocol.Defaults.TEXT));
     }
 
-    public void chat(Component text) {
+    public void recordChat(Component text) {
         recorder.recordEvent(CraftReelProtocol.Tracks.CHAT_MESSAGE, new ChatLine(text));
     }
 
-    public void title(Component title, Component subtitle, int fadeIn, int stay, int fadeOut) {
+    @Deprecated
+    public void chat(Component text) {
+        recordChat(text);
+    }
+
+    public void recordTitle(Component title, Component subtitle, int fadeIn, int stay, int fadeOut) {
         recorder.recordEvent(CraftReelProtocol.Tracks.TITLE, new Title(title, subtitle, fadeIn, stay, fadeOut));
+    }
+
+    @Deprecated
+    public void title(Component title, Component subtitle, int fadeIn, int stay, int fadeOut) {
+        recordTitle(title, subtitle, fadeIn, stay, fadeOut);
     }
 
 }

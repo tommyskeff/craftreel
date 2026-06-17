@@ -167,10 +167,6 @@ public final class WorldRecorder {
         worldEffect.onSound(sound, x, y, z, volume, pitch);
     }
 
-    /**
-     * Updates the recorded chunk range. Newly in-range loaded chunks and entities are captured
-     * immediately; chunks and entities that fall out of range simply stop receiving updates.
-     */
     public void setBounds(int minChunkX, int minChunkZ, int maxChunkX, int maxChunkZ) {
         if (!active || stopped) {
             return;
@@ -201,6 +197,7 @@ public final class WorldRecorder {
             Location spawn = world.getSpawnLocation();
             return new Vector(spawn.getX(), spawn.getY(), spawn.getZ());
         }
+
         int centerX = (((bounds.minChunkX() + bounds.maxChunkX()) >> 1) << 4) + 8;
         int centerZ = (((bounds.minChunkZ() + bounds.maxChunkZ()) >> 1) << 4) + 8;
         int y = world.getHighestBlockYAt(centerX, centerZ) + 1;
@@ -211,6 +208,7 @@ public final class WorldRecorder {
         if (!active || stopped) {
             return;
         }
+
         registry.tickAll();
         EnvironmentState environment = new EnvironmentState(identifier, world.getFullTime(), world.hasStorm(),
             world.isThundering());
