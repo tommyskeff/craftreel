@@ -19,6 +19,7 @@ import dev.tommyjs.craftreel.util.Identifier;
 import dev.tommyjs.craftreel.protocol.CraftReelProtocol;
 import dev.tommyjs.reel.scene.AbstractActor;
 import dev.tommyjs.craftreel.replay.reference.Viewable;
+import dev.tommyjs.craftreel.replay.reference.ViewerSet;
 import dev.tommyjs.craftreel.replay.reference.WorldContext;
 import dev.tommyjs.craftreel.replay.base.BaseResources;
 import dev.tommyjs.craftreel.protocol.block.BlockBreakProgress;
@@ -26,7 +27,6 @@ import dev.tommyjs.craftreel.protocol.world.ExplosionEvent;
 import dev.tommyjs.craftreel.protocol.world.ParticleEvent;
 import dev.tommyjs.craftreel.protocol.world.SoundEvent;
 import dev.tommyjs.craftreel.protocol.world.WorldEvent;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.World;
@@ -34,9 +34,6 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 public final class EffectsActor extends AbstractActor implements Viewable {
@@ -47,18 +44,17 @@ public final class EffectsActor extends AbstractActor implements Viewable {
 
     private Identifier id;
     private World world;
-    private WorldActor owner;
-    private final Set<UUID> viewers = new LinkedHashSet<>();
+    private WorldContext context;
+    private final ViewerSet viewers = new ViewerSet();
 
     @Override
     protected void configure() {
         onCreate(CraftReelProtocol.Tracks.WORLD_META, meta -> {
             id = meta.id();
-            WorldContext context = scene.getResourceManager().require(BaseResources.WORLD, id);
-            owner = (WorldActor) context;
+            context = scene.getResourceManager().require(BaseResources.WORLD, id);
             world = context.world().getBukkitWorld();
             scene.getResourceManager().publish(BaseResources.EFFECTS, id, this);
-            owner.addViewable(this);
+            context.group().add(this);
         });
 
         onEvent(CraftReelProtocol.Tracks.SOUND, this::playSound);
@@ -71,8 +67,8 @@ public final class EffectsActor extends AbstractActor implements Viewable {
             if (id != null) {
                 scene.getResourceManager().unpublish(BaseResources.EFFECTS, id);
             }
-            if (owner != null) {
-                owner.removeViewable(this);
+            if (context != null) {
+                context.group().remove(this);
             }
             viewers.clear();
         });
@@ -80,12 +76,12 @@ public final class EffectsActor extends AbstractActor implements Viewable {
 
     @Override
     public void addViewer(@NotNull Player player) {
-        viewers.add(player.getUniqueId());
+        viewers.add(player);
     }
 
     @Override
     public void removeViewer(@NotNull Player player) {
-        viewers.remove(player.getUniqueId());
+        viewers.remove(player);
     }
 
     private void playSound(SoundEvent event) {
@@ -140,9 +136,8 @@ public final class EffectsActor extends AbstractActor implements Viewable {
 
     private void forViewersInRange(Location location, double range, Consumer<Player> action) {
         double rangeSquared = range * range;
-        for (UUID viewerId : viewers) {
-            Player viewer = Bukkit.getPlayer(viewerId);
-            if (viewer == null || !viewer.isOnline() || !viewer.getWorld().equals(world)) {
+        for (Player viewer : viewers.online()) {
+            if (!viewer.getWorld().equals(world)) {
                 continue;
             }
             if (viewer.getLocation().distanceSquared(location) <= rangeSquared) {

@@ -5,17 +5,14 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPl
 import dev.tommyjs.craftreel.util.Identifier;
 import dev.tommyjs.craftreel.protocol.CraftReelProtocol;
 import dev.tommyjs.craftreel.replay.base.BaseResources;
+import dev.tommyjs.craftreel.replay.base.ViewerContexts;
 import dev.tommyjs.craftreel.replay.handler.SpectatorRegistry;
 import dev.tommyjs.craftreel.replay.reference.ViewerContext;
+import dev.tommyjs.craftreel.replay.reference.ViewerSet;
 import dev.tommyjs.reel.scene.AbstractActor;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.UUID;
 
 public final class TabHeaderActor extends AbstractActor implements ViewerContext {
 
@@ -23,7 +20,7 @@ public final class TabHeaderActor extends AbstractActor implements ViewerContext
     private boolean published;
     private Component header = Component.empty();
     private Component footer = Component.empty();
-    private final Set<UUID> viewers = new LinkedHashSet<>();
+    private final ViewerSet viewers = new ViewerSet();
 
     @Override
     protected void configure() {
@@ -47,11 +44,8 @@ public final class TabHeaderActor extends AbstractActor implements ViewerContext
                 }
                 scene.getResourceManager().unpublish(BaseResources.TAB_HEADER, id);
             }
-            for (UUID id : viewers) {
-                Player viewer = Bukkit.getPlayer(id);
-                if (viewer != null && viewer.isOnline()) {
-                    clear(viewer);
-                }
+            for (Player viewer : viewers.online()) {
+                clear(viewer);
             }
             viewers.clear();
         });
@@ -63,29 +57,22 @@ public final class TabHeaderActor extends AbstractActor implements ViewerContext
     }
 
     @Override
-    public void attach(@NotNull Player player) {
-        viewers.add(player.getUniqueId());
+    public void addViewer(@NotNull Player player) {
+        ViewerContexts.makeExclusive(scene.getResourceManager(), BaseResources.TAB_HEADER, this, player);
+        viewers.add(player);
         paint(player);
     }
 
     @Override
-    public void detach(@NotNull Player player) {
-        if (viewers.remove(player.getUniqueId()) && player.isOnline()) {
+    public void removeViewer(@NotNull Player player) {
+        if (viewers.remove(player) && player.isOnline()) {
             clear(player);
         }
     }
 
     private void refresh() {
-        viewers.removeIf(id -> {
-            Player viewer = Bukkit.getPlayer(id);
-            return viewer == null || !viewer.isOnline();
-        });
-
-        for (UUID id : viewers) {
-            Player viewer = Bukkit.getPlayer(id);
-            if (viewer != null && viewer.isOnline()) {
-                paint(viewer);
-            }
+        for (Player viewer : viewers.online()) {
+            paint(viewer);
         }
     }
 

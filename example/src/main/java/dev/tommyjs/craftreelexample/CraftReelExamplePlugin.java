@@ -2,21 +2,29 @@ package dev.tommyjs.craftreelexample;
 
 import dev.tommyjs.craftreel.CraftReel;
 import dev.tommyjs.craftreel.record.MinecraftRecording;
+import dev.tommyjs.craftreel.record.ObjectiveHandle;
+import dev.tommyjs.craftreel.record.ScoreboardRecorder;
 import dev.tommyjs.craftreel.record.SidebarRecorder;
+import dev.tommyjs.craftreel.record.TeamHandle;
+import dev.tommyjs.craftreel.record.TeamRecorder;
 import dev.tommyjs.craftreel.record.TextRecorder;
 import dev.tommyjs.craftreel.record.WorldRecorder;
+import dev.tommyjs.craftreel.protocol.scoreboard.ScoreboardRenderType;
+import dev.tommyjs.craftreel.protocol.team.TeamInfo;
 import dev.tommyjs.craftreel.replay.MinecraftReplay;
 import dev.tommyjs.craftreel.util.Identifier;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import dev.tommyjs.reel.storage.writer.LayerStrategy;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +33,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public class CraftReelExamplePlugin extends JavaPlugin implements Listener {
@@ -94,6 +103,22 @@ public class CraftReelExamplePlugin extends JavaPlugin implements Listener {
 
             SidebarRecorder sidebarRecorder = SidebarRecorder.attachDefault(recording);
 
+            TeamRecorder teamRecorder = TeamRecorder.attachDefault(recording);
+            TeamHandle team = teamRecorder.createTeam("recorder");
+            team.setInfo(TeamInfo.builder("recorder")
+                .setPrefix(Component.text("[TARGET] ", NamedTextColor.AQUA))
+                .setColor(NamedTextColor.RED)
+                .build());
+            team.addMembers(Set.of(player.getName()));
+
+            ScoreboardRecorder scoreboardRecorder = ScoreboardRecorder.attachDefault(recording);
+            ObjectiveHandle healthObjective = scoreboardRecorder.createObjective("health");
+            healthObjective.setInfo(Component.text("❤", NamedTextColor.RED), ScoreboardRenderType.INTEGER, 2);
+
+            // Create the default text context at frame 0 so chat/title contexts exist
+            // when a spectator joins (matches the eager attach of the other contexts).
+            TextRecorder.attachDefault(recording);
+
             recording.addTickListener(() -> {
                 if (!player.isOnline()) {
                     return;
@@ -113,11 +138,15 @@ public class CraftReelExamplePlugin extends JavaPlugin implements Listener {
                         .append(Component.text(": ", NamedTextColor.GRAY))
                         .append(Component.text(player.getName(), NamedTextColor.WHITE))
                 ));
-            });
 
-            TextRecorder.attachDefault(recording)
-                .title(Component.text("Replay started", NamedTextColor.GREEN, TextDecoration.BOLD),
-                    Component.empty(), 10, 40, 10);
+                healthObjective.setScore(player.getName(), (int) Math.round(player.getHealth()));
+
+                if (recording.getCurrentFrame() == 20L) {
+                    TextRecorder.attachDefault(recording)
+                        .title(Component.text("Replay started", NamedTextColor.GREEN, TextDecoration.BOLD),
+                            Component.empty(), 10, 40, 10);
+                }
+            });
         } catch (RuntimeException e) {
             player.sendMessage(ChatColor.RED + "Failed to start recording: " + e.getMessage());
             getLogger().warning("Failed to start recording " + file + ": " + e);
@@ -163,6 +192,19 @@ public class CraftReelExamplePlugin extends JavaPlugin implements Listener {
         replays.put(player.getUniqueId(), replay);
         player.sendMessage(ChatColor.GREEN + "Playing '" + name + "'. Run /reelplay again to leave.");
         return true;
+    }
+
+    @EventHandler
+    public void onChat(AsyncPlayerChatEvent event) {
+        if (recordings.isEmpty()) {
+            return;
+        }
+        String line = String.format(event.getFormat(), event.getPlayer().getDisplayName(), event.getMessage());
+        Bukkit.getScheduler().runTask(this, () -> {
+            for (MinecraftRecording recording : recordings.values()) {
+                TextRecorder.attachDefault(recording).recordChat(Component.text(line));
+            }
+        });
     }
 
     @EventHandler

@@ -48,6 +48,34 @@ import dev.tommyjs.craftreel.protocol.tab.TabHeaderModel;
 import dev.tommyjs.craftreel.protocol.tab.TabMeta;
 import dev.tommyjs.craftreel.protocol.tab.TabMetaCodec;
 import dev.tommyjs.craftreel.protocol.tab.TabMetaModel;
+import dev.tommyjs.craftreel.protocol.scoreboard.ScoreboardMeta;
+import dev.tommyjs.craftreel.protocol.scoreboard.ScoreboardMetaCodec;
+import dev.tommyjs.craftreel.protocol.scoreboard.ScoreboardMetaModel;
+import dev.tommyjs.craftreel.protocol.scoreboard.ObjectiveMeta;
+import dev.tommyjs.craftreel.protocol.scoreboard.ObjectiveMetaCodec;
+import dev.tommyjs.craftreel.protocol.scoreboard.ObjectiveMetaModel;
+import dev.tommyjs.craftreel.protocol.scoreboard.ObjectiveInfo;
+import dev.tommyjs.craftreel.protocol.scoreboard.ObjectiveInfoCodec;
+import dev.tommyjs.craftreel.protocol.scoreboard.ObjectiveInfoModel;
+import dev.tommyjs.craftreel.protocol.scoreboard.ObjectiveScores;
+import dev.tommyjs.craftreel.protocol.scoreboard.ObjectiveScoresCodec;
+import dev.tommyjs.craftreel.protocol.scoreboard.ObjectiveScoresModel;
+import dev.tommyjs.craftreel.protocol.scoreboard.ObjectiveScoreDelta;
+import dev.tommyjs.craftreel.protocol.scoreboard.ObjectiveScoreDeltaCodec;
+import dev.tommyjs.craftreel.protocol.team.TeamsMeta;
+import dev.tommyjs.craftreel.protocol.team.TeamsMetaCodec;
+import dev.tommyjs.craftreel.protocol.team.TeamsMetaModel;
+import dev.tommyjs.craftreel.protocol.team.TeamMeta;
+import dev.tommyjs.craftreel.protocol.team.TeamMetaCodec;
+import dev.tommyjs.craftreel.protocol.team.TeamMetaModel;
+import dev.tommyjs.craftreel.protocol.team.TeamInfo;
+import dev.tommyjs.craftreel.protocol.team.TeamInfoCodec;
+import dev.tommyjs.craftreel.protocol.team.TeamInfoModel;
+import dev.tommyjs.craftreel.protocol.team.TeamMembers;
+import dev.tommyjs.craftreel.protocol.team.TeamMembersCodec;
+import dev.tommyjs.craftreel.protocol.team.TeamMembersDelta;
+import dev.tommyjs.craftreel.protocol.team.TeamMembersDeltaCodec;
+import dev.tommyjs.craftreel.protocol.team.TeamMembersModel;
 import dev.tommyjs.craftreel.util.Identifier;
 import dev.tommyjs.craftreel.protocol.world.EnvironmentState;
 import dev.tommyjs.craftreel.protocol.world.EnvironmentStateCodec;
@@ -83,6 +111,10 @@ public final class CraftReelProtocol {
         public static final EntityTypeHandle TEXT = EntityTypeHandle.of(entity("text"));
         public static final EntityTypeHandle SIDEBAR = EntityTypeHandle.of(entity("sidebar"));
         public static final EntityTypeHandle TAB_HEADER = EntityTypeHandle.of(entity("tab_header"));
+        public static final EntityTypeHandle SCOREBOARD = EntityTypeHandle.of(entity("scoreboard"));
+        public static final EntityTypeHandle OBJECTIVE = EntityTypeHandle.of(entity("objective"));
+        public static final EntityTypeHandle TEAMS = EntityTypeHandle.of(entity("teams"));
+        public static final EntityTypeHandle TEAM = EntityTypeHandle.of(entity("team"));
         public static final EntityTypeHandle ENTITY = EntityTypeHandle.of(entity("entity"));
         public static final EntityTypeHandle PLAYER = EntityTypeHandle.of(entity("player"));
 
@@ -119,6 +151,30 @@ public final class CraftReelProtocol {
 
         public static final TrackHandle<TabHeader, Void> TAB_HEADER =
             TrackHandle.of(track("tab_header"), TabHeader.class, Void.class);
+
+        public static final TrackHandle<ScoreboardMeta, Void> SCOREBOARD_META =
+            TrackHandle.of(track("scoreboard_meta"), ScoreboardMeta.class, Void.class);
+
+        public static final TrackHandle<ObjectiveMeta, Void> OBJECTIVE_META =
+            TrackHandle.of(track("objective_meta"), ObjectiveMeta.class, Void.class);
+
+        public static final TrackHandle<ObjectiveInfo, Void> OBJECTIVE_INFO =
+            TrackHandle.of(track("objective_info"), ObjectiveInfo.class, Void.class);
+
+        public static final TrackHandle<ObjectiveScores, ObjectiveScoreDelta> OBJECTIVE_SCORES =
+            TrackHandle.of(track("objective_scores"), ObjectiveScores.class, ObjectiveScoreDelta.class);
+
+        public static final TrackHandle<TeamsMeta, Void> TEAMS_META =
+            TrackHandle.of(track("teams_meta"), TeamsMeta.class, Void.class);
+
+        public static final TrackHandle<TeamMeta, Void> TEAM_META =
+            TrackHandle.of(track("team_meta"), TeamMeta.class, Void.class);
+
+        public static final TrackHandle<TeamInfo, Void> TEAM_INFO =
+            TrackHandle.of(track("team_info"), TeamInfo.class, Void.class);
+
+        public static final TrackHandle<TeamMembers, TeamMembersDelta> TEAM_MEMBERS =
+            TrackHandle.of(track("team_members"), TeamMembers.class, TeamMembersDelta.class);
 
         public static final TrackHandle<EntityMeta, Void> ENTITY_META =
             TrackHandle.of(track("entity_meta"), EntityMeta.class, Void.class);
@@ -178,6 +234,8 @@ public final class CraftReelProtocol {
         public static final Identifier TEXT = Identifier.of(CraftReel.NAMESPACE, "text/default");
         public static final Identifier SIDEBAR = Identifier.of(CraftReel.NAMESPACE, "sidebar/default");
         public static final Identifier TAB_HEADER = Identifier.of(CraftReel.NAMESPACE, "tab/default");
+        public static final Identifier SCOREBOARD = Identifier.of(CraftReel.NAMESPACE, "scoreboard/default");
+        public static final Identifier TEAM = Identifier.of(CraftReel.NAMESPACE, "team/default");
 
         private Defaults() {
         }
@@ -194,6 +252,14 @@ public final class CraftReelProtocol {
             .register(Tracks.SIDEBAR, new SidebarModel(), new SidebarStateCodec(), new SidebarDeltaCodec())
             .register(Tracks.TAB_HEADER_META, new TabMetaModel(), new TabMetaCodec())
             .register(Tracks.TAB_HEADER, new TabHeaderModel(), new TabHeaderCodec())
+            .register(Tracks.SCOREBOARD_META, new ScoreboardMetaModel(), new ScoreboardMetaCodec())
+            .register(Tracks.OBJECTIVE_META, new ObjectiveMetaModel(), new ObjectiveMetaCodec())
+            .register(Tracks.OBJECTIVE_INFO, new ObjectiveInfoModel(), new ObjectiveInfoCodec())
+            .register(Tracks.OBJECTIVE_SCORES, new ObjectiveScoresModel(), new ObjectiveScoresCodec(), new ObjectiveScoreDeltaCodec())
+            .register(Tracks.TEAMS_META, new TeamsMetaModel(), new TeamsMetaCodec())
+            .register(Tracks.TEAM_META, new TeamMetaModel(), new TeamMetaCodec())
+            .register(Tracks.TEAM_INFO, new TeamInfoModel(), new TeamInfoCodec())
+            .register(Tracks.TEAM_MEMBERS, new TeamMembersModel(), new TeamMembersCodec(), new TeamMembersDeltaCodec())
             .register(Tracks.ENTITY_META, new EntityMetaModel(), new EntityMetaCodec())
             .register(Tracks.PLAYER_META, new PlayerMetaModel(), new PlayerMetaCodec())
             .register(Tracks.ENTITY_POSE, new EntityPoseModel(), new EntityPoseStateCodec(), new EntityPoseDeltaCodec())
