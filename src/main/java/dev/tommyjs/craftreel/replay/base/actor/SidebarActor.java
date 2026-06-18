@@ -4,6 +4,7 @@ import dev.tommyjs.craftreel.util.Identifier;
 import dev.tommyjs.craftreel.protocol.CraftReelProtocol;
 import dev.tommyjs.reel.scene.AbstractActor;
 import dev.tommyjs.craftreel.replay.base.BaseResources;
+import dev.tommyjs.craftreel.replay.base.ViewerContexts;
 import dev.tommyjs.craftreel.replay.handler.SpectatorRegistry;
 import dev.tommyjs.craftreel.replay.reference.ViewerContext;
 import fr.mrmicky.fastboard.FastBoard;
@@ -61,13 +62,14 @@ public class SidebarActor extends AbstractActor implements ViewerContext {
     }
 
     @Override
-    public void attach(@NotNull Player player) {
+    public void addViewer(@NotNull Player player) {
+        ViewerContexts.makeExclusive(scene.getResourceManager(), BaseResources.SIDEBAR, this, player);
         FastBoard board = boards.computeIfAbsent(player.getUniqueId(), id -> new FastBoard(player));
         paint(board);
     }
 
     @Override
-    public void detach(@NotNull Player player) {
+    public void removeViewer(@NotNull Player player) {
         FastBoard board = boards.remove(player.getUniqueId());
         if (board != null) {
             board.delete();

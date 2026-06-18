@@ -4,7 +4,7 @@ import dev.tommyjs.dynworld.entity.EntityTracker;
 import dev.tommyjs.dynworld.world.DynamicWorld;
 import org.jetbrains.annotations.NotNull;
 
-public interface WorldContext extends ViewerContext {
+public interface WorldContext extends ContextGroup {
 
     @NotNull DynamicWorld world();
 

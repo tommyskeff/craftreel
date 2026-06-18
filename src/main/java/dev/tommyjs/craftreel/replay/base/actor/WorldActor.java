@@ -7,8 +7,10 @@ import dev.tommyjs.dynworld.world.DynamicWorldManager;
 import dev.tommyjs.craftreel.protocol.CraftReelProtocol;
 import dev.tommyjs.reel.scene.AbstractActor;
 import dev.tommyjs.craftreel.replay.base.BaseResources;
+import dev.tommyjs.craftreel.replay.base.ViewerContexts;
 import dev.tommyjs.craftreel.replay.handler.SpectatorRegistry;
 import dev.tommyjs.craftreel.replay.reference.Viewable;
+import dev.tommyjs.craftreel.replay.reference.ViewerGroup;
 import dev.tommyjs.craftreel.replay.reference.WorldContext;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -18,9 +20,6 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 public final class WorldActor extends AbstractActor implements WorldContext {
@@ -30,8 +29,7 @@ public final class WorldActor extends AbstractActor implements WorldContext {
     private Location spawn;
 
     private final EntityTracker tracker = EntityTracker.create();
-    private final Set<UUID> viewers = new LinkedHashSet<>();
-    private final List<Viewable> viewables = new ArrayList<>();
+    private final ViewerGroup group = new ViewerGroup();
 
     @Override
     protected void configure() {
@@ -48,6 +46,18 @@ public final class WorldActor extends AbstractActor implements WorldContext {
             World bukkit = world.getBukkitWorld();
             bukkit.setGameRuleValue("doDaylightCycle", "false");
             bukkit.setGameRuleValue("doWeatherCycle", "false");
+
+            group.add(new Viewable() {
+                @Override
+                public void addViewer(@NotNull Player player) {
+                    tracker.addViewer(player);
+                }
+
+                @Override
+                public void removeViewer(@NotNull Player player) {
+                    tracker.removeViewer(player);
+                }
+            });
 
             scene.getResourceManager().publish(BaseResources.WORLD, id, this);
         });
@@ -71,6 +81,7 @@ public final class WorldActor extends AbstractActor implements WorldContext {
                     player.teleport(fallback);
                 }
             }
+            group.clear();
             DynamicWorldManager.DEFAULT.unload(world);
         });
     }
@@ -91,36 +102,20 @@ public final class WorldActor extends AbstractActor implements WorldContext {
     }
 
     @Override
-    public void attach(@NotNull Player player) {
-        player.teleport(spawn);
-        viewers.add(player.getUniqueId());
-        tracker.addViewer(player);
-        for (Viewable viewable : viewables) {
-            viewable.addViewer(player);
-        }
+    public @NotNull ViewerGroup group() {
+        return group;
     }
 
     @Override
-    public void detach(@NotNull Player player) {
-        viewers.remove(player.getUniqueId());
-        tracker.removeViewer(player);
-        for (Viewable viewable : viewables) {
-            viewable.removeViewer(player);
-        }
+    public void addViewer(@NotNull Player player) {
+        ViewerContexts.makeExclusive(scene.getResourceManager(), BaseResources.WORLD, this, player);
+        player.teleport(spawn);
+        group.addViewer(player);
     }
 
-    public void addViewable(@NotNull Viewable viewable) {
-        viewables.add(viewable);
-        for (UUID viewerId : viewers) {
-            Player viewer = Bukkit.getPlayer(viewerId);
-            if (viewer != null && viewer.isOnline()) {
-                viewable.addViewer(viewer);
-            }
-        }
-    }
-
-    public void removeViewable(@NotNull Viewable viewable) {
-        viewables.remove(viewable);
+    @Override
+    public void removeViewer(@NotNull Player player) {
+        group.removeViewer(player);
     }
 
 }

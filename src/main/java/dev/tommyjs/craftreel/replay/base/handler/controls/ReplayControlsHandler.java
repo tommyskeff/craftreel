@@ -128,6 +128,11 @@ public class ReplayControlsHandler extends ReplayHandler {
         ScenePlayer scene = getReplay().getScenePlayer();
         double speed = scene.getSpeed();
         PlayerInventory inv = player.getInventory();
+        for (int slot = 0; slot < 9; slot++) {
+            if (ReplayControls.fromSlot(slot) == null) {
+                inv.setItem(slot, null);
+            }
+        }
         inv.setItem(ReplayControl.SLOWER.slot(), ReplayControls.slower(speed));
         inv.setItem(ReplayControl.REWIND.slot(), ReplayControls.rewind());
         inv.setItem(ReplayControl.PLAY_PAUSE.slot(), ReplayControls.playPause(!scene.isPlaying()));
@@ -136,6 +141,7 @@ public class ReplayControlsHandler extends ReplayHandler {
         if (focus) {
             inv.setHeldItemSlot(ReplayControls.HELD_SLOT);
         }
+        player.setLevel(0);
         player.updateInventory();
     }
 

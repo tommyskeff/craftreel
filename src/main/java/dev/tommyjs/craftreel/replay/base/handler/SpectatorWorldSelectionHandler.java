@@ -1,7 +1,6 @@
 package dev.tommyjs.craftreel.replay.base.handler;
 
 import dev.tommyjs.craftreel.replay.base.BaseResources;
-import dev.tommyjs.craftreel.replay.base.SpectatorHelper;
 import dev.tommyjs.craftreel.replay.event.PlayerJoinReplayEvent;
 import dev.tommyjs.craftreel.replay.handler.ReplayHandler;
 import dev.tommyjs.craftreel.replay.reference.WorldContext;
@@ -23,7 +22,7 @@ public class SpectatorWorldSelectionHandler extends ReplayHandler {
             return;
         }
 
-        SpectatorHelper.setWorld(event.getSpectator(), selectWorld(worlds));
+        event.getSpectator().attach(selectWorld(worlds));
     }
 
     protected WorldContext selectWorld(Collection<WorldContext> worlds) {

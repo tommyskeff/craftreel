@@ -2,6 +2,7 @@ package dev.tommyjs.craftreel.record;
 
 import dev.tommyjs.craftreel.util.Identifier;
 import dev.tommyjs.craftreel.protocol.CraftReelProtocol;
+import dev.tommyjs.craftreel.protocol.sidebar.SidebarDelta;
 import dev.tommyjs.craftreel.protocol.sidebar.SidebarMeta;
 import dev.tommyjs.craftreel.protocol.sidebar.SidebarState;
 import dev.tommyjs.reel.recorder.EntityRecorder;
@@ -19,6 +20,7 @@ public final class SidebarRecorder {
         Collections.synchronizedMap(new WeakHashMap<>());
 
     private final EntityRecorder recorder;
+    private final java.util.List<net.kyori.adventure.text.Component> last = new java.util.ArrayList<>();
 
     private SidebarRecorder(@NotNull EntityRecorder recorder) {
         this.recorder = recorder;
@@ -27,6 +29,7 @@ public final class SidebarRecorder {
     public static @NotNull SidebarRecorder attach(@NotNull MinecraftRecording recording, Identifier identifier) {
         EntityRecorder recorder = recording.getRecorder().createEntity(CraftReelProtocol.Entities.SIDEBAR);
         recorder.recordState(CraftReelProtocol.Tracks.SIDEBAR_META, new SidebarMeta(identifier));
+        recorder.recordState(CraftReelProtocol.Tracks.SIDEBAR, new SidebarState(java.util.List.of()));
         return new SidebarRecorder(recorder);
     }
 
@@ -36,7 +39,19 @@ public final class SidebarRecorder {
     }
 
     public void recordSidebar(@NotNull List<Component> lines) {
-        recorder.recordState(CraftReelProtocol.Tracks.SIDEBAR, new SidebarState(lines));
+        for (int i = 0; i < Math.min(last.size(), lines.size()); i++) {
+            if (!last.get(i).equals(lines.get(i))) {
+                recorder.recordDelta(CraftReelProtocol.Tracks.SIDEBAR, new SidebarDelta.SetLine(i, last.get(i), lines.get(i)));
+            }
+        }
+        for (int i = last.size(); i < lines.size(); i++) {
+            recorder.recordDelta(CraftReelProtocol.Tracks.SIDEBAR, new SidebarDelta.AddLine(i, lines.get(i)));
+        }
+        for (int i = last.size() - 1; i >= lines.size(); i--) {
+            recorder.recordDelta(CraftReelProtocol.Tracks.SIDEBAR, new SidebarDelta.RemoveLine(i, last.get(i)));
+        }
+        last.clear();
+        last.addAll(lines);
     }
 
 }

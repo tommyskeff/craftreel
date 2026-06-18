@@ -7,7 +7,6 @@ import dev.tommyjs.craftreel.replay.event.ReplayStartEvent;
 import dev.tommyjs.craftreel.replay.event.ReplayStopEvent;
 import dev.tommyjs.craftreel.replay.handler.ReplayHandler;
 import dev.tommyjs.craftreel.replay.handler.SpectatorRegistry;
-import dev.tommyjs.craftreel.replay.reference.ContextSlot;
 import dev.tommyjs.craftreel.replay.reference.ViewerContext;
 import dev.tommyjs.reel.replay.ReplayCursorBuilder;
 import dev.tommyjs.reel.scene.ReplayScene;
@@ -24,12 +23,10 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -193,7 +190,6 @@ public class MinecraftReplayImpl implements MinecraftReplay {
     private final class ReplaySpectatorImpl implements ReplaySpectator {
 
         private final Player player;
-        private final Map<ContextSlot<?>, ViewerContext> slots = new LinkedHashMap<>();
         private final Set<ViewerContext> attached = new LinkedHashSet<>();
 
         private ReplaySpectatorImpl(Player player) {
@@ -208,52 +204,20 @@ public class MinecraftReplayImpl implements MinecraftReplay {
         @Override
         public void attach(@NotNull ViewerContext context) {
             if (attached.add(context)) {
-                context.attach(player);
+                context.addViewer(player);
             }
         }
 
         @Override
         public void detach(@NotNull ViewerContext context) {
             if (attached.remove(context)) {
-                context.detach(player);
+                context.removeViewer(player);
             }
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public <C extends ViewerContext> void assign(@NotNull ContextSlot<C> slot, @NotNull C context) {
-            C previous = (C) slots.put(slot, context);
-            if (previous != null && previous != context) {
-                detach(previous);
-            }
-            attach(context);
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public <C extends ViewerContext> void clear(@NotNull ContextSlot<C> slot) {
-            C previous = (C) slots.remove(slot);
-            if (previous != null) {
-                detach(previous);
-            }
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public <C extends ViewerContext> @Nullable C get(@NotNull ContextSlot<C> slot) {
-            return (C) slots.get(slot);
         }
 
         @Override
         public @NotNull Collection<ViewerContext> attached() {
             return new ArrayList<>(attached);
-        }
-
-        @Override
-        public <C extends ViewerContext> void assign(@NotNull ContextSlot<C> slot,
-                                                     @NotNull SceneResourceKey<Identifier, C> key,
-                                                     @NotNull Identifier id) {
-            assign(slot, scene.getResourceManager().require(key, id));
         }
 
         @Override
@@ -263,15 +227,13 @@ public class MinecraftReplayImpl implements MinecraftReplay {
 
         private void detachAll() {
             for (ViewerContext context : new ArrayList<>(attached)) {
-                context.detach(player);
+                context.removeViewer(player);
             }
             attached.clear();
-            slots.clear();
         }
 
         private void purge(ViewerContext context) {
             attached.remove(context);
-            slots.values().removeIf(value -> value == context);
         }
 
     }
