@@ -37,7 +37,7 @@ public final class WorldActor extends AbstractActor implements WorldContext {
             id = meta.id();
             world = DynamicWorld.builder()
                 .setName("replay-" + UUID.randomUUID())
-                .setEnvironment(meta.environment())
+                .setEnvironment(World.Environment.valueOf(meta.environment().name()))
                 .setGameMode(GameMode.CREATIVE)
                 .create();
             spawn = new Location(world.getBukkitWorld(),

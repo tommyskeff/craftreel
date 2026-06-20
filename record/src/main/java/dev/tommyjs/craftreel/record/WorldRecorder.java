@@ -2,6 +2,7 @@ package dev.tommyjs.craftreel.record;
 
 import dev.tommyjs.craftreel.protocol.CraftReelProtocol;
 import dev.tommyjs.craftreel.protocol.entity.EntityAnimationType;
+import dev.tommyjs.craftreel.protocol.world.Environment;
 import dev.tommyjs.craftreel.protocol.world.EnvironmentState;
 import dev.tommyjs.craftreel.protocol.world.WorldMeta;
 import dev.tommyjs.craftreel.record.entity.EntityCapture;
@@ -13,6 +14,7 @@ import dev.tommyjs.craftreel.record.world.ChunkBounds;
 import dev.tommyjs.craftreel.record.world.WorldBlockRecorder;
 import dev.tommyjs.craftreel.record.world.WorldEffect;
 import dev.tommyjs.craftreel.util.Identifier;
+import dev.tommyjs.craftreel.util.Vec3;
 import dev.tommyjs.reel.recorder.EntityRecorder;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -86,8 +88,10 @@ public final class WorldRecorder {
         this.identifier = identifier;
 
         this.worldEntity = recording.getRecorder().createEntity(CraftReelProtocol.Entities.WORLD);
+        Vector worldSpawn = spawn != null ? spawn : computeSpawn();
         worldEntity.recordState(CraftReelProtocol.Tracks.WORLD_META,
-            new WorldMeta(identifier, world.getEnvironment(), spawn != null ? spawn : computeSpawn()));
+            new WorldMeta(identifier, Environment.valueOf(world.getEnvironment().name()),
+                new Vec3(worldSpawn.getX(), worldSpawn.getY(), worldSpawn.getZ())));
 
         this.worldEffect = new WorldEffect(worldEntity);
         this.blockRecorder = new WorldBlockRecorder(recording, world, identifier, bounds);

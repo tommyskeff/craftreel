@@ -1,6 +1,5 @@
 package dev.tommyjs.craftreel.protocol;
 
-import dev.tommyjs.craftreel.CraftReel;
 import dev.tommyjs.craftreel.protocol.chat.ChatLine;
 import dev.tommyjs.craftreel.protocol.chat.ChatLineCodec;
 import dev.tommyjs.craftreel.protocol.chat.ChatLineModel;
@@ -89,11 +88,13 @@ import dev.tommyjs.reel.track.TrackRegistry;
 
 public final class CraftReelProtocol {
 
+    public static final String NAMESPACE = "craftreel";
+
     private CraftReelProtocol() {
     }
 
     private static String namespaced(String category, String name) {
-        return CraftReel.NAMESPACE + ":" + category + "/" + name;
+        return NAMESPACE + ":" + category + "/" + name;
     }
 
     private static String entity(String name) {
@@ -231,11 +232,11 @@ public final class CraftReelProtocol {
 
     public static final class Defaults {
 
-        public static final Identifier TEXT = Identifier.of(CraftReel.NAMESPACE, "text/default");
-        public static final Identifier SIDEBAR = Identifier.of(CraftReel.NAMESPACE, "sidebar/default");
-        public static final Identifier TAB_HEADER = Identifier.of(CraftReel.NAMESPACE, "tab/default");
-        public static final Identifier SCOREBOARD = Identifier.of(CraftReel.NAMESPACE, "scoreboard/default");
-        public static final Identifier TEAM = Identifier.of(CraftReel.NAMESPACE, "team/default");
+        public static final Identifier TEXT = Identifier.of(NAMESPACE, "text/default");
+        public static final Identifier SIDEBAR = Identifier.of(NAMESPACE, "sidebar/default");
+        public static final Identifier TAB_HEADER = Identifier.of(NAMESPACE, "tab/default");
+        public static final Identifier SCOREBOARD = Identifier.of(NAMESPACE, "scoreboard/default");
+        public static final Identifier TEAM = Identifier.of(NAMESPACE, "team/default");
 
         private Defaults() {
         }
