@@ -13,6 +13,10 @@ import java.util.UUID;
 
 public interface MinecraftReplay extends Closeable {
 
+    static MinecraftReplayBuilder builder() {
+        return new MinecraftReplayBuilder();
+    }
+
     void start();
 
     void stop();

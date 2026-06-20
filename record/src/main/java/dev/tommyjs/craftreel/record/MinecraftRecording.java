@@ -7,6 +7,10 @@ import java.io.Closeable;
 
 public interface MinecraftRecording extends Closeable {
 
+    static MinecraftRecordingBuilder builder() {
+        return new MinecraftRecordingBuilder();
+    }
+
     void start();
 
     void stop();

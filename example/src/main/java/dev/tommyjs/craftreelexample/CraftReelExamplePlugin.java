@@ -1,6 +1,5 @@
 package dev.tommyjs.craftreelexample;
 
-import dev.tommyjs.craftreel.CraftReel;
 import dev.tommyjs.craftreel.record.MinecraftRecording;
 import dev.tommyjs.craftreel.record.ObjectiveHandle;
 import dev.tommyjs.craftreel.record.ScoreboardRecorder;
@@ -89,7 +88,7 @@ public class CraftReelExamplePlugin extends JavaPlugin implements Listener {
         File file = new File(getDataFolder(), name + ".reel");
         MinecraftRecording recording;
         try {
-            recording = CraftReel.record()
+            recording = MinecraftRecording.builder()
                 .setPlugin(this)
                 .setReelWriter(w -> w.setFile(file).setLayerStrategy(new LayerStrategy(new long[]{1, 4, 16})))
                 .build();
@@ -175,7 +174,7 @@ public class CraftReelExamplePlugin extends JavaPlugin implements Listener {
 
         MinecraftReplay replay;
         try {
-            replay = CraftReel.replay()
+            replay = MinecraftReplay.builder()
                 .setPlugin(this)
                 .addDefaultHandlers()
                 .setReelReader(r -> r.setFile(file))
