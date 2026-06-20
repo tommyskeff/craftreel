@@ -53,12 +53,12 @@ for text. The `spigot-api`, `authlib`, and `packetevents-spigot` dependencies ar
 ## Recording
 
 Start a recording, point it at a `.reel` writer, then attach recorders for the
-parts of the game you want to capture. `CraftReel.record()` builds a
+parts of the game you want to capture. `MinecraftRecording.builder()` builds a
 `MinecraftRecording`; the default track registry covers the full protocol, so you
 normally only configure the writer.
 
 ```java
-MinecraftRecording recording = CraftReel.record()
+MinecraftRecording recording = MinecraftRecording.builder()
     .setPlugin(this)
     .setReelWriter(w -> w
         .setFile(new File(getDataFolder(), "match.reel"))
@@ -111,13 +111,13 @@ recording.stop();
 
 ## Replaying
 
-`CraftReel.replay()` builds a `MinecraftReplay` from a `.reel` reader.
+`MinecraftReplay.builder()` builds a `MinecraftReplay` from a `.reel` reader.
 `addDefaultHandlers()` wires up the standard scene handlers (world, entities,
 text, controls, spectator protection); add viewers and they're teleported into
 the replay world to watch.
 
 ```java
-MinecraftReplay replay = CraftReel.replay()
+MinecraftReplay replay = MinecraftReplay.builder()
     .setPlugin(this)
     .addDefaultHandlers()
     .setReelReader(r -> r.setFile(new File(getDataFolder(), "match.reel")))
