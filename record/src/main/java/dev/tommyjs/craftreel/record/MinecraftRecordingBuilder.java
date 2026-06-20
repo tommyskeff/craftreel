@@ -1,7 +1,6 @@
 package dev.tommyjs.craftreel.record;
 
 import dev.tommyjs.craftreel.protocol.CraftReelProtocol;
-import dev.tommyjs.craftreel.replay.MinecraftReplayBuilder;
 import dev.tommyjs.reel.recorder.ReelRecorder;
 import dev.tommyjs.reel.recorder.ReelRecorderBuilder;
 import dev.tommyjs.reel.storage.writer.ReelWriterBuilder;

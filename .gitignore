@@ -2,3 +2,4 @@ target/
 .idea/
 *.reel
 dependency-reduced-pom.xml
+.flattened-pom.xml
