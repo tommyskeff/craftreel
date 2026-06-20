@@ -22,6 +22,7 @@
             <groupId>dev.tommyjs</groupId>
             <artifactId>craftreel-all</artifactId>
             <version>${project.version}</version>
+            <type>pom</type>
         </dependency>
         <dependency>
             <groupId>org.spigotmc</groupId>

@@ -22,15 +22,17 @@ Maven, Java 17+. CraftReel is split into modules:
 - `craftreel-common` — protocol models and codecs, free of any Bukkit dependency. Depend on this to read or write `.reel` files off-server.
 - `craftreel-record` — server-side recording.
 - `craftreel-replay` — server-side replay.
-- `craftreel-all` — pulls in `record` and `replay` plus the `CraftReel` entry point.
+- `craftreel-all` — an aggregator that pulls in `record` and `replay` together.
 
-To record and replay on a server, depend on `craftreel-all`:
+To record and replay on a server, depend on `craftreel-all`. It is a
+`pom`-packaged aggregator, so declare `<type>pom</type>`:
 
 ```xml
 <dependency>
     <groupId>dev.tommyjs</groupId>
     <artifactId>craftreel-all</artifactId>
-    <version>0.3.0</version>
+    <version>0.3.2</version>
+    <type>pom</type>
 </dependency>
 ```
 
@@ -40,7 +42,7 @@ To only read or write recordings, depend on `craftreel-common`:
 <dependency>
     <groupId>dev.tommyjs</groupId>
     <artifactId>craftreel-common</artifactId>
-    <version>0.3.0</version>
+    <version>0.3.2</version>
 </dependency>
 ```
 
