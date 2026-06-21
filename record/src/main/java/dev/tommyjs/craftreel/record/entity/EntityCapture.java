@@ -41,17 +41,18 @@ import java.util.UUID;
 
 public final class EntityCapture {
 
+    private static final double VELOCITY_EPSILON = 1.0e-3;
+    private static final int POSE_KEYFRAME_INTERVAL = 600;
+
     private static final Map<org.bukkit.entity.EntityType, EntityType> LEGACY_TYPE_FALLBACK = buildFallback();
 
     private final MinecraftRecording recording;
     private final Entity entity;
     private final Identifier worldId;
 
-    private static final double VELOCITY_EPSILON = 1.0e-3;
-    private static final int POSE_KEYFRAME_INTERVAL = 100;
-
     private EntityRecorder recorder;
     private EntityPose lastPose;
+    private EntityPose lastKeyframe;
     private final Map<Integer, EntityMetadataValue> lastMeta = new LinkedHashMap<>();
     private final Map<Integer, ItemStack> lastEquipment = new LinkedHashMap<>();
     private EntityPotionEffectState lastPotion;
@@ -82,9 +83,11 @@ public final class EntityCapture {
         }
 
         EntityPose pose = getEntityPose(entity);
-        if (poseTick++ % POSE_KEYFRAME_INTERVAL == 0) {
+        boolean keyframeTick = poseTick++ % POSE_KEYFRAME_INTERVAL == 0;
+        if (keyframeTick && !pose.equals(lastKeyframe)) {
             recorder.recordState(CraftReelProtocol.Tracks.ENTITY_POSE, pose);
             lastPose = pose;
+            lastKeyframe = pose;
         } else if (!pose.equals(lastPose)) {
             recorder.recordDelta(CraftReelProtocol.Tracks.ENTITY_POSE, lastPose.to(pose));
             lastPose = pose;
@@ -165,6 +168,7 @@ public final class EntityCapture {
             recorder.recordState(CraftReelProtocol.Tracks.ENTITY_PRESENCE, new EntityPresence(true));
             recordEquipment();
             lastPose = pose;
+            lastKeyframe = pose;
             return true;
         }
 
@@ -179,6 +183,7 @@ public final class EntityCapture {
         recorder.recordState(CraftReelProtocol.Tracks.ENTITY_PRESENCE, new EntityPresence(true));
         recordEquipment();
         lastPose = pose;
+        lastKeyframe = pose;
         return true;
     }
 
