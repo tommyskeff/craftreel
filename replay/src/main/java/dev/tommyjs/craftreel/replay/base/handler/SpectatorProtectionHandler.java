@@ -13,6 +13,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
@@ -89,6 +90,13 @@ public class SpectatorProtectionHandler extends ReplayHandler {
 
     @EventHandler
     public void onPlace(BlockPlaceEvent event) {
+        if (isViewer(event.getPlayer())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onBedEnter(PlayerBedEnterEvent event) {
         if (isViewer(event.getPlayer())) {
             event.setCancelled(true);
         }
