@@ -18,6 +18,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -70,7 +71,7 @@ public class ReplayControlsHandler extends ReplayHandler {
         }
         event.setCancelled(true);
         ReplayControl control = ReplayControls.fromSlot(player.getInventory().getHeldItemSlot());
-        if (control != null) {
+        if (control != null && canUseControl(player, control)) {
             boolean leftClick = event.getAction() == Action.LEFT_CLICK_AIR
                 || event.getAction() == Action.LEFT_CLICK_BLOCK;
             onControl(player, control, leftClick);
@@ -85,7 +86,7 @@ public class ReplayControlsHandler extends ReplayHandler {
         }
     }
 
-    private void onControl(Player player, ReplayControl control, boolean leftClick) {
+    protected void onControl(Player player, ReplayControl control, boolean leftClick) {
         ScenePlayer scene = getReplay().getScenePlayer();
         switch (control) {
             case PLAY_PAUSE -> {
@@ -136,11 +137,11 @@ public class ReplayControlsHandler extends ReplayHandler {
         renderInfo(player);
     }
 
-    private long skipFrames() {
+    protected long skipFrames() {
         return ReplayControls.SKIP_INTERVALS[skipIndex];
     }
 
-    private void cycleSkipInterval(Player player) {
+    protected void cycleSkipInterval(Player player) {
         skipIndex = (skipIndex + 1) % ReplayControls.SKIP_INTERVALS.length;
         giveControls(player, false);
         playSound(player, Sound.CLICK, 1.5F);
@@ -148,24 +149,32 @@ public class ReplayControlsHandler extends ReplayHandler {
 
     public void giveControls(Player player, boolean focus) {
         ScenePlayer scene = getReplay().getScenePlayer();
-        double speed = scene.getSpeed();
         PlayerInventory inv = player.getInventory();
         for (int slot = 0; slot < 9; slot++) {
-            if (ReplayControls.fromSlot(slot) == null) {
-                inv.setItem(slot, null);
-            }
+            ReplayControl control = ReplayControls.fromSlot(slot);
+            inv.setItem(slot, control == null ? null : getControlItem(player, control, scene));
         }
-        long interval = skipFrames();
-        inv.setItem(ReplayControl.SLOWER.slot(), ReplayControls.slower(speed));
-        inv.setItem(ReplayControl.REWIND.slot(), ReplayControls.rewind(interval));
-        inv.setItem(ReplayControl.PLAY_PAUSE.slot(), ReplayControls.playPause(!scene.isPlaying()));
-        inv.setItem(ReplayControl.FORWARD.slot(), ReplayControls.forward(interval));
-        inv.setItem(ReplayControl.FASTER.slot(), ReplayControls.faster(speed));
         if (focus) {
             inv.setHeldItemSlot(ReplayControls.HELD_SLOT);
         }
         player.setLevel(0);
         player.updateInventory();
+    }
+
+    protected ItemStack getControlItem(Player player, ReplayControl control, ScenePlayer scene) {
+        double speed = scene.getSpeed();
+        long interval = skipFrames();
+        return switch (control) {
+            case SLOWER -> ReplayControls.slower(speed);
+            case REWIND -> ReplayControls.rewind(interval);
+            case PLAY_PAUSE -> ReplayControls.playPause(!scene.isPlaying());
+            case FORWARD -> ReplayControls.forward(interval);
+            case FASTER -> ReplayControls.faster(speed);
+        };
+    }
+
+    protected boolean canUseControl(Player player, ReplayControl control) {
+        return true;
     }
 
     public void clearControls(Player player) {
@@ -186,7 +195,7 @@ public class ReplayControlsHandler extends ReplayHandler {
         }
     }
 
-    private void renderInfo(Player player) {
+    protected void renderInfo(Player player) {
         ScenePlayer scene = getReplay().getScenePlayer();
 
         String status = scene.isPlaying()
@@ -216,7 +225,7 @@ public class ReplayControlsHandler extends ReplayHandler {
         return (float) Math.max(0.0, Math.min(1.0, progress));
     }
 
-    private void playSound(Player player, Sound sound, float pitch) {
+    protected void playSound(Player player, Sound sound, float pitch) {
         player.playSound(player.getLocation(), sound, 1F, pitch);
     }
 
