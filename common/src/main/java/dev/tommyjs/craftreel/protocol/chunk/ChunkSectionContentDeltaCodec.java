@@ -1,6 +1,6 @@
 package dev.tommyjs.craftreel.protocol.chunk;
 
-import dev.tommyjs.dynworld.block.BlockState;
+import dev.tommyjs.craftreel.protocol.block.BlockState;
 import dev.tommyjs.reel.track.codec.Codec;
 import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.NotNull;
@@ -11,10 +11,10 @@ public class ChunkSectionContentDeltaCodec implements Codec<ChunkSectionContentD
         buffer.writeInt(singleBlockDelta.x());
         buffer.writeInt(singleBlockDelta.y());
         buffer.writeInt(singleBlockDelta.z());
-        buffer.writeShort(singleBlockDelta.before().getId());
-        buffer.writeByte(singleBlockDelta.before().getData());
-        buffer.writeShort(singleBlockDelta.after().getId());
-        buffer.writeByte(singleBlockDelta.after().getData());
+        buffer.writeShort(singleBlockDelta.before().id());
+        buffer.writeByte(singleBlockDelta.before().data());
+        buffer.writeShort(singleBlockDelta.after().id());
+        buffer.writeByte(singleBlockDelta.after().data());
     }
 
     private static @NotNull ChunkSectionContentDelta.BlockDelta decodeBlock(@NotNull ByteBuf buffer) {

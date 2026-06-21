@@ -12,12 +12,11 @@ public class ChunkSectionContentModel implements TrackModel<ChunkSectionContent,
     @Override
     public @NotNull ChunkSectionContent applyDelta(@NotNull ChunkSectionContent state, @NotNull ChunkSectionContentDelta delta) {
         if (delta instanceof ChunkSectionContentDelta.BlockDelta singleBlockDelta) {
-            state.region().setBlock(singleBlockDelta.x(), singleBlockDelta.y(), singleBlockDelta.z(),
-                singleBlockDelta.after());
+            setBlock(state.section(), singleBlockDelta);
             return state;
         } else if (delta instanceof ChunkSectionContentDelta.MultiBlockDelta multiBlockDelta) {
             for (ChunkSectionContentDelta.BlockDelta blockDelta : multiBlockDelta.blocks()) {
-                state.region().setBlock(blockDelta.x(), blockDelta.y(), blockDelta.z(), blockDelta.after());
+                setBlock(state.section(), blockDelta);
             }
             return state;
         } else {
@@ -25,9 +24,14 @@ public class ChunkSectionContentModel implements TrackModel<ChunkSectionContent,
         }
     }
 
+    private static void setBlock(char[] section, ChunkSectionContentDelta.BlockDelta block) {
+        int index = ((block.y() & 0xF) << 8) | ((block.z() & 0xF) << 4) | (block.x() & 0xF);
+        section[index] = (char) ((block.after().id() << 4) | block.after().data());
+    }
+
     @Override
     public @NotNull ChunkSectionContent cloneState(@NotNull ChunkSectionContent state) {
-        return new ChunkSectionContent(state.region().copy());
+        return new ChunkSectionContent(state.section().clone());
     }
 
     @Override

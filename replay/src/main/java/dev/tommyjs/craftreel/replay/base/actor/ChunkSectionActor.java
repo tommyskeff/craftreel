@@ -1,5 +1,6 @@
 package dev.tommyjs.craftreel.replay.base.actor;
 
+import dev.tommyjs.dynworld.block.BlockState;
 import dev.tommyjs.dynworld.region.CapturedRegion;
 import dev.tommyjs.dynworld.region.PasteOptions;
 import dev.tommyjs.craftreel.protocol.CraftReelProtocol;
@@ -29,7 +30,9 @@ public final class ChunkSectionActor extends AbstractActor {
         onChange(CraftReelProtocol.Tracks.CHUNK_SECTION_CONTENT, batch -> {
             int blocks = batch.reset() ? Integer.MAX_VALUE : countBlocks(batch.deltas());
             if (blocks >= WHOLE_SUBCHUNK_THRESHOLD) {
-                owner.world().setRegion(batch.state().region(), originX, originY, originZ, PasteOptions.create());
+                CapturedRegion region = CapturedRegion.empty(16, 16, 16, 0, 0, 0);
+                region.setSection(0, 0, 0, batch.state().section());
+                owner.world().setRegion(region, originX, originY, originZ, PasteOptions.create());
             } else {
                 for (ChunkSectionContentDelta delta : batch.deltas()) {
                     applyDelta(delta);
@@ -70,7 +73,8 @@ public final class ChunkSectionActor extends AbstractActor {
     }
 
     private void setBlock(ChunkSectionContentDelta.BlockDelta block) {
-        owner.world().setBlock(originX + block.x(), originY + block.y(), originZ + block.z(), block.after());
+        BlockState state = BlockState.of(block.after().id(), block.after().data());
+        owner.world().setBlock(originX + block.x(), originY + block.y(), originZ + block.z(), state);
     }
 
 }

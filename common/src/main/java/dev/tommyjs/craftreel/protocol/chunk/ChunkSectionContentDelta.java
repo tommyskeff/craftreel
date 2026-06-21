@@ -1,6 +1,6 @@
 package dev.tommyjs.craftreel.protocol.chunk;
 
-import dev.tommyjs.dynworld.block.BlockState;
+import dev.tommyjs.craftreel.protocol.block.BlockState;
 import org.jetbrains.annotations.NotNull;
 
 public sealed interface ChunkSectionContentDelta

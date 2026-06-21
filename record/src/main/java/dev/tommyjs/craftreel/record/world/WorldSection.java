@@ -1,5 +1,6 @@
 package dev.tommyjs.craftreel.record.world;
 
+import dev.tommyjs.craftreel.record.util.BlockUtil;
 import dev.tommyjs.craftreel.util.Identifier;
 import dev.tommyjs.craftreel.protocol.CraftReelProtocol;
 import dev.tommyjs.craftreel.protocol.chunk.ChunkSectionContent;
@@ -26,7 +27,7 @@ public final class WorldSection {
         recorder.recordState(CraftReelProtocol.Tracks.CHUNK_SECTION_META,
             new ChunkSectionMeta(worldId, chunkX, sectionY, chunkZ));
         recorder.recordState(CraftReelProtocol.Tracks.CHUNK_SECTION_CONTENT,
-            new ChunkSectionContent(mirror.copy()));
+            new ChunkSectionContent(mirror.getSection(0, 0, 0).clone()));
         return new WorldSection(recorder, mirror);
     }
 
@@ -36,7 +37,7 @@ public final class WorldSection {
             return;
         }
         recorder.recordDelta(CraftReelProtocol.Tracks.CHUNK_SECTION_CONTENT,
-            new ChunkSectionContentDelta.BlockDelta(localX, localY, localZ, before, after));
+            new ChunkSectionContentDelta.BlockDelta(localX, localY, localZ, BlockUtil.adaptBlockState(before), BlockUtil.adaptBlockState(after)));
         mirror.setBlock(localX, localY, localZ, after);
     }
 
