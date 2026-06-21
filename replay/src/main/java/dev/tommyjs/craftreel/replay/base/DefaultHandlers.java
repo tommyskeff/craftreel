@@ -14,6 +14,7 @@ import dev.tommyjs.reel.scene.SceneHandler;
 import dev.tommyjs.craftreel.protocol.CraftReelProtocol.Entities;
 import dev.tommyjs.craftreel.protocol.CraftReelProtocol.Tracks;
 import dev.tommyjs.craftreel.protocol.scoreboard.ScoreboardMeta;
+import dev.tommyjs.craftreel.protocol.tab.TabListMeta;
 import dev.tommyjs.craftreel.protocol.team.TeamsMeta;
 
 import java.util.List;
@@ -26,6 +27,9 @@ public final class DefaultHandlers {
         ActorHandler.create(Entities.CHUNK_SECTION, ChunkSectionActor::new).consumes(BaseResources.WORLD),
         ActorHandler.create(Entities.SIDEBAR, SidebarActor::new).provides(BaseResources.SIDEBAR),
         ActorHandler.create(Entities.TAB_HEADER, TabHeaderActor::new).provides(BaseResources.TAB_HEADER),
+        ActorHandler.create(Entities.TAB_LIST, () -> new ContextGroupActor<>(
+            Tracks.TAB_LIST_META, TabListMeta::id, BaseResources.TAB_LIST)).provides(BaseResources.TAB_LIST),
+        ActorHandler.create(Entities.TAB_ENTRY, TabEntryActor::new).consumes(BaseResources.TAB_LIST).provides(BaseResources.TAB_ENTRY),
         ActorHandler.create(Entities.SCOREBOARD, () -> new ContextGroupActor<>(
             Tracks.SCOREBOARD_META, ScoreboardMeta::id, BaseResources.SCOREBOARD)).provides(BaseResources.SCOREBOARD),
         ActorHandler.create(Entities.OBJECTIVE, ObjectiveActor::new).consumes(BaseResources.SCOREBOARD),

@@ -21,7 +21,7 @@
         <dependency>
             <groupId>dev.tommyjs</groupId>
             <artifactId>dynworld</artifactId>
-            <version>0.2.0</version>
+            <version>0.2.1</version>
         </dependency>
         <dependency>
             <groupId>org.spigotmc</groupId>

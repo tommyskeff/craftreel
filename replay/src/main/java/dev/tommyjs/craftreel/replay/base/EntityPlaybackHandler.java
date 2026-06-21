@@ -27,7 +27,7 @@ public final class EntityPlaybackHandler implements SceneHandler {
             ActorHandler.create(Entities.ENTITY, () -> new MobActor(config))
                 .consumes(BaseResources.WORLD).provides(BaseResources.ENTITY_ID),
             ActorHandler.create(Entities.PLAYER, () -> new PlayerActor(config))
-                .consumes(BaseResources.WORLD).provides(BaseResources.ENTITY_ID)
+                .consumes(BaseResources.WORLD, BaseResources.TAB_ENTRY).provides(BaseResources.ENTITY_ID)
         );
     }
 

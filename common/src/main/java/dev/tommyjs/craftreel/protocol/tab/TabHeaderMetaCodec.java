@@ -5,16 +5,16 @@ import dev.tommyjs.reel.track.codec.Codec;
 import io.netty.buffer.ByteBuf;
 import org.jetbrains.annotations.NotNull;
 
-public class TabMetaCodec implements Codec<TabMeta> {
+public class TabHeaderMetaCodec implements Codec<TabHeaderMeta> {
 
     @Override
-    public void encode(@NotNull ByteBuf buffer, @NotNull TabMeta meta) {
+    public void encode(@NotNull ByteBuf buffer, @NotNull TabHeaderMeta meta) {
         Identifier.CODEC.encode(buffer, meta.id());
     }
 
     @Override
-    public @NotNull TabMeta decode(@NotNull ByteBuf buffer) {
-        return new TabMeta(Identifier.CODEC.decode(buffer));
+    public @NotNull TabHeaderMeta decode(@NotNull ByteBuf buffer) {
+        return new TabHeaderMeta(Identifier.CODEC.decode(buffer));
     }
 
 }

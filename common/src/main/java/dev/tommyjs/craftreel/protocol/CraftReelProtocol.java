@@ -44,9 +44,18 @@ import dev.tommyjs.craftreel.protocol.sidebar.SidebarStateCodec;
 import dev.tommyjs.craftreel.protocol.tab.TabHeader;
 import dev.tommyjs.craftreel.protocol.tab.TabHeaderCodec;
 import dev.tommyjs.craftreel.protocol.tab.TabHeaderModel;
-import dev.tommyjs.craftreel.protocol.tab.TabMeta;
-import dev.tommyjs.craftreel.protocol.tab.TabMetaCodec;
-import dev.tommyjs.craftreel.protocol.tab.TabMetaModel;
+import dev.tommyjs.craftreel.protocol.tab.TabHeaderMeta;
+import dev.tommyjs.craftreel.protocol.tab.TabHeaderMetaCodec;
+import dev.tommyjs.craftreel.protocol.tab.TabHeaderMetaModel;
+import dev.tommyjs.craftreel.protocol.tab.TabListMeta;
+import dev.tommyjs.craftreel.protocol.tab.TabListMetaCodec;
+import dev.tommyjs.craftreel.protocol.tab.TabListMetaModel;
+import dev.tommyjs.craftreel.protocol.tab.TabEntryMeta;
+import dev.tommyjs.craftreel.protocol.tab.TabEntryMetaCodec;
+import dev.tommyjs.craftreel.protocol.tab.TabEntryMetaModel;
+import dev.tommyjs.craftreel.protocol.tab.TabEntryState;
+import dev.tommyjs.craftreel.protocol.tab.TabEntryStateCodec;
+import dev.tommyjs.craftreel.protocol.tab.TabEntryStateModel;
 import dev.tommyjs.craftreel.protocol.scoreboard.ScoreboardMeta;
 import dev.tommyjs.craftreel.protocol.scoreboard.ScoreboardMetaCodec;
 import dev.tommyjs.craftreel.protocol.scoreboard.ScoreboardMetaModel;
@@ -112,6 +121,8 @@ public final class CraftReelProtocol {
         public static final EntityTypeHandle TEXT = EntityTypeHandle.of(entity("text"));
         public static final EntityTypeHandle SIDEBAR = EntityTypeHandle.of(entity("sidebar"));
         public static final EntityTypeHandle TAB_HEADER = EntityTypeHandle.of(entity("tab_header"));
+        public static final EntityTypeHandle TAB_LIST = EntityTypeHandle.of(entity("tab_list"));
+        public static final EntityTypeHandle TAB_ENTRY = EntityTypeHandle.of(entity("tab_entry"));
         public static final EntityTypeHandle SCOREBOARD = EntityTypeHandle.of(entity("scoreboard"));
         public static final EntityTypeHandle OBJECTIVE = EntityTypeHandle.of(entity("objective"));
         public static final EntityTypeHandle TEAMS = EntityTypeHandle.of(entity("teams"));
@@ -147,11 +158,20 @@ public final class CraftReelProtocol {
         public static final TrackHandle<SidebarState, SidebarDelta> SIDEBAR =
             TrackHandle.of(track("sidebar"), SidebarState.class, SidebarDelta.class);
 
-        public static final TrackHandle<TabMeta, Void> TAB_HEADER_META =
-            TrackHandle.of(track("tab_header_meta"), TabMeta.class, Void.class);
+        public static final TrackHandle<TabHeaderMeta, Void> TAB_HEADER_META =
+            TrackHandle.of(track("tab_header_meta"), TabHeaderMeta.class, Void.class);
 
         public static final TrackHandle<TabHeader, Void> TAB_HEADER =
             TrackHandle.of(track("tab_header"), TabHeader.class, Void.class);
+
+        public static final TrackHandle<TabListMeta, Void> TAB_LIST_META =
+            TrackHandle.of(track("tab_list_meta"), TabListMeta.class, Void.class);
+
+        public static final TrackHandle<TabEntryMeta, Void> TAB_ENTRY_META =
+            TrackHandle.of(track("tab_entry_meta"), TabEntryMeta.class, Void.class);
+
+        public static final TrackHandle<TabEntryState, Void> TAB_ENTRY_STATE =
+            TrackHandle.of(track("tab_entry_state"), TabEntryState.class, Void.class);
 
         public static final TrackHandle<ScoreboardMeta, Void> SCOREBOARD_META =
             TrackHandle.of(track("scoreboard_meta"), ScoreboardMeta.class, Void.class);
@@ -235,6 +255,7 @@ public final class CraftReelProtocol {
         public static final Identifier TEXT = Identifier.of(NAMESPACE, "text/default");
         public static final Identifier SIDEBAR = Identifier.of(NAMESPACE, "sidebar/default");
         public static final Identifier TAB_HEADER = Identifier.of(NAMESPACE, "tab/default");
+        public static final Identifier TAB_LIST = Identifier.of(NAMESPACE, "tab/list");
         public static final Identifier SCOREBOARD = Identifier.of(NAMESPACE, "scoreboard/default");
         public static final Identifier TEAM = Identifier.of(NAMESPACE, "team/default");
 
@@ -251,8 +272,11 @@ public final class CraftReelProtocol {
             .register(Tracks.TEXT_META, new TextContextModel(), new TextContextCodec())
             .register(Tracks.SIDEBAR_META, new SidebarMetaModel(), new SidebarMetaCodec())
             .register(Tracks.SIDEBAR, new SidebarModel(), new SidebarStateCodec(), new SidebarDeltaCodec())
-            .register(Tracks.TAB_HEADER_META, new TabMetaModel(), new TabMetaCodec())
+            .register(Tracks.TAB_HEADER_META, new TabHeaderMetaModel(), new TabHeaderMetaCodec())
             .register(Tracks.TAB_HEADER, new TabHeaderModel(), new TabHeaderCodec())
+            .register(Tracks.TAB_LIST_META, new TabListMetaModel(), new TabListMetaCodec())
+            .register(Tracks.TAB_ENTRY_META, new TabEntryMetaModel(), new TabEntryMetaCodec())
+            .register(Tracks.TAB_ENTRY_STATE, new TabEntryStateModel(), new TabEntryStateCodec())
             .register(Tracks.SCOREBOARD_META, new ScoreboardMetaModel(), new ScoreboardMetaCodec())
             .register(Tracks.OBJECTIVE_META, new ObjectiveMetaModel(), new ObjectiveMetaCodec())
             .register(Tracks.OBJECTIVE_INFO, new ObjectiveInfoModel(), new ObjectiveInfoCodec())

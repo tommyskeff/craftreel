@@ -16,6 +16,8 @@ public final class BaseResources {
     public static final SceneResourceKey<Identifier, WorldContext> WORLD = SceneResourceKey.of("world");
     public static final SceneResourceKey<Identifier, ViewerContext> SIDEBAR = SceneResourceKey.of("sidebar");
     public static final SceneResourceKey<Identifier, ViewerContext> TAB_HEADER = SceneResourceKey.of("tab_header");
+    public static final SceneResourceKey<Identifier, ContextGroup> TAB_LIST = SceneResourceKey.of("tab_list");
+    public static final SceneResourceKey<UUID, UUID> TAB_ENTRY = SceneResourceKey.of("tab_entry");
     public static final SceneResourceKey<Identifier, ContextGroup> SCOREBOARD = SceneResourceKey.of("scoreboard");
     public static final SceneResourceKey<Identifier, ContextGroup> TEAM = SceneResourceKey.of("team");
     public static final SceneResourceKey<UUID, IntSupplier> ENTITY_ID = SceneResourceKey.of("entity_id");

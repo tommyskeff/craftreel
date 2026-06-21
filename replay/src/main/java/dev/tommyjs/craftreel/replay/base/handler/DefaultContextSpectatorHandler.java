@@ -25,6 +25,7 @@ public class DefaultContextSpectatorHandler extends ReplayHandler {
 
         attachDefault(resources, spectator, BaseResources.SIDEBAR, CraftReelProtocol.Defaults.SIDEBAR);
         attachDefault(resources, spectator, BaseResources.TAB_HEADER, CraftReelProtocol.Defaults.TAB_HEADER);
+        attachDefault(resources, spectator, BaseResources.TAB_LIST, CraftReelProtocol.Defaults.TAB_LIST);
         attachDefault(resources, spectator, BaseResources.SCOREBOARD, CraftReelProtocol.Defaults.SCOREBOARD);
         attachDefault(resources, spectator, BaseResources.TEAM, CraftReelProtocol.Defaults.TEAM);
         attachDefault(resources, spectator, BaseResources.CHAT, CraftReelProtocol.Defaults.TEXT);
