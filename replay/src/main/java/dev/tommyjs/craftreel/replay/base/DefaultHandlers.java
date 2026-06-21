@@ -6,6 +6,7 @@ import dev.tommyjs.craftreel.replay.base.handler.WorldFreezeHandler;
 import dev.tommyjs.craftreel.replay.base.handler.DefaultContextSpectatorHandler;
 import dev.tommyjs.craftreel.replay.base.handler.SpectatorWorldSelectionHandler;
 import dev.tommyjs.craftreel.replay.base.handler.SpectatorProtectionHandler;
+import dev.tommyjs.craftreel.replay.base.handler.SpectatorVoidHandler;
 import dev.tommyjs.craftreel.replay.base.handler.SpectatorRegistryHandler;
 import dev.tommyjs.craftreel.replay.base.handler.controls.ReplayControlsHandler;
 import dev.tommyjs.reel.scene.ActorHandler;
@@ -41,6 +42,7 @@ public final class DefaultHandlers {
         new SpectatorWorldSelectionHandler(),
         new DefaultContextSpectatorHandler(),
         new SpectatorProtectionHandler(),
+        new SpectatorVoidHandler(),
         new ReplayControlsHandler()
     );
 

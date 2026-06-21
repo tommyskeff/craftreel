@@ -102,6 +102,11 @@ public final class WorldActor extends AbstractActor implements WorldContext {
     }
 
     @Override
+    public @NotNull Location spawn() {
+        return spawn;
+    }
+
+    @Override
     public @NotNull ViewerGroup group() {
         return group;
     }
