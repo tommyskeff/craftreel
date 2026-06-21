@@ -23,10 +23,13 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class ReplayControlsHandler extends ReplayHandler {
 
+    private final Map<UUID, Long> lastClick = new HashMap<>();
     private BukkitTask renderTask;
     private int skipIndex;
 
@@ -70,6 +73,9 @@ public class ReplayControlsHandler extends ReplayHandler {
             return;
         }
         event.setCancelled(true);
+        if (onCooldown(player)) {
+            return;
+        }
         ReplayControl control = ReplayControls.fromSlot(player.getInventory().getHeldItemSlot());
         if (control != null && canUseControl(player, control)) {
             boolean leftClick = event.getAction() == Action.LEFT_CLICK_AIR
@@ -135,6 +141,20 @@ public class ReplayControlsHandler extends ReplayHandler {
         }
         giveControls(player, false);
         renderInfo(player);
+    }
+
+    protected long cooldownMillis() {
+        return 250L;
+    }
+
+    private boolean onCooldown(Player player) {
+        long now = System.currentTimeMillis();
+        Long last = lastClick.get(player.getUniqueId());
+        if (last != null && now - last < cooldownMillis()) {
+            return true;
+        }
+        lastClick.put(player.getUniqueId(), now);
+        return false;
     }
 
     protected long skipFrames() {
