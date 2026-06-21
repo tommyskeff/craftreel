@@ -104,7 +104,6 @@ public class MinecraftReplayImpl implements MinecraftReplay {
                 player.tick(Duration.ofMillis(50));
             }
         }.runTaskTimer(plugin, 1L, 1L);
-        player.play();
         Bukkit.getPluginManager().callEvent(new ReplayStartEvent(this));
     }
 

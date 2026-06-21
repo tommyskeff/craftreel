@@ -178,7 +178,7 @@ public class CraftReelExamplePlugin extends JavaPlugin implements Listener {
                 .setPlugin(this)
                 .addDefaultHandlers()
                 .setReelReader(r -> r.setFile(file))
-                .setLooping(true)
+                .setLooping(false)
                 .build();
             replay.start();
             replay.addViewer(player);
