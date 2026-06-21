@@ -1,9 +1,11 @@
 package dev.tommyjs.craftreel.replay.base.handler.controls;
 
 import dev.tommyjs.craftreel.replay.ReplayDiagnosticsImpl;
+import dev.tommyjs.craftreel.replay.base.BaseResources;
 import dev.tommyjs.craftreel.replay.event.PlayerJoinReplayEvent;
 import dev.tommyjs.craftreel.replay.event.PlayerLeaveReplayEvent;
 import dev.tommyjs.craftreel.replay.handler.ReplayHandler;
+import dev.tommyjs.craftreel.replay.reference.WorldContext;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.chat.ChatTypes;
 import com.github.retrooper.packetevents.protocol.chat.message.ChatMessageLegacy;
@@ -141,6 +143,11 @@ public class ReplayControlsHandler extends ReplayHandler {
         long from = scene.getCurrentFrame();
         long start = System.nanoTime();
         scene.seek(frame);
+        if (!scene.isPlaying()) {
+            for (WorldContext world : getReplay().getScene().getResourceManager().getResources(BaseResources.WORLD)) {
+                world.tracker().tick();
+            }
+        }
         if (getReplay().getDiagnostics() instanceof ReplayDiagnosticsImpl diagnostics) {
             diagnostics.recordSeek(from, frame, System.nanoTime() - start);
         }
