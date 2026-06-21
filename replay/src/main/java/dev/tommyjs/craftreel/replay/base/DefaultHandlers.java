@@ -31,8 +31,7 @@ public final class DefaultHandlers {
         ActorHandler.create(Entities.TEAMS, () -> new ContextGroupActor<>(
             Tracks.TEAMS_META, TeamsMeta::id, BaseResources.TEAM)).provides(BaseResources.TEAM),
         ActorHandler.create(Entities.TEAM, TeamActor::new).consumes(BaseResources.TEAM),
-        ActorHandler.create(Entities.ENTITY, MobActor::new).consumes(BaseResources.WORLD).provides(BaseResources.ENTITY_ID),
-        ActorHandler.create(Entities.PLAYER, PlayerActor::new).consumes(BaseResources.WORLD).provides(BaseResources.ENTITY_ID),
+        new EntityPlaybackHandler(),
         ActorHandler.create(Entities.TEXT, ChatActor::new).provides(BaseResources.CHAT),
         ActorHandler.create(Entities.TEXT, TitleActor::new).provides(BaseResources.TITLE),
         ActorHandler.create(Entities.WORLD, EffectsActor::new).consumes(BaseResources.WORLD).provides(BaseResources.EFFECTS),

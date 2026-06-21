@@ -20,6 +20,7 @@ import dev.tommyjs.craftreel.protocol.item.ItemStack;
 import dev.tommyjs.craftreel.protocol.entity.EntityMetadataValue;
 import dev.tommyjs.dynworld.entity.EntityPose;
 import dev.tommyjs.dynworld.entity.EntityTracker;
+import dev.tommyjs.dynworld.entity.PlayerEntity;
 import dev.tommyjs.dynworld.entity.VirtualEntity;
 import dev.tommyjs.reel.scene.AbstractActor;
 import org.jetbrains.annotations.NotNull;
@@ -40,9 +41,15 @@ public abstract class AbstractTrackedActor extends AbstractActor {
         EquipmentSlot.BOOTS, EquipmentSlot.MAIN_HAND, EquipmentSlot.OFF_HAND
     };
 
+    protected final EntityPlaybackConfig config;
+
     private EntityTracker tracker;
     private VirtualEntity entity;
     private UUID entityKey;
+
+    protected AbstractTrackedActor(@NotNull EntityPlaybackConfig config) {
+        this.config = config;
+    }
 
     protected abstract void registerCreate();
 
@@ -63,6 +70,7 @@ public abstract class AbstractTrackedActor extends AbstractActor {
             }
             if (tracker != null && entity != null) {
                 tracker.remove(entity);
+                onEntityRemoved(entity);
             }
         });
     }
@@ -72,7 +80,18 @@ public abstract class AbstractTrackedActor extends AbstractActor {
         this.tracker = context.tracker();
         this.entity = factory.apply(tracker);
         this.entityKey = id;
+        entity.setRange(config.renderDistance());
+        if (entity instanceof PlayerEntity player) {
+            player.setTablistLinger(config.tablistLinger());
+        }
         scene.getResourceManager().publish(BaseResources.ENTITY_ID, id, (IntSupplier) entity::entityId);
+        onEntitySpawned(entity);
+    }
+
+    protected void onEntitySpawned(@NotNull VirtualEntity entity) {
+    }
+
+    protected void onEntityRemoved(@NotNull VirtualEntity entity) {
     }
 
     private void animate(EntityAnimationType type) {

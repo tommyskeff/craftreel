@@ -4,7 +4,15 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import dev.tommyjs.craftreel.protocol.CraftReelProtocol;
 
-public final class MobActor extends AbstractTrackedActor {
+public class MobActor extends AbstractTrackedActor {
+
+    public MobActor() {
+        this(EntityPlaybackConfig.DEFAULT);
+    }
+
+    public MobActor(EntityPlaybackConfig config) {
+        super(config);
+    }
 
     @Override
     protected void registerCreate() {

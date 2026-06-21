@@ -8,7 +8,15 @@ import dev.tommyjs.craftreel.protocol.entity.PlayerMeta;
 import java.util.List;
 import java.util.UUID;
 
-public final class PlayerActor extends AbstractTrackedActor {
+public class PlayerActor extends AbstractTrackedActor {
+
+    public PlayerActor() {
+        this(EntityPlaybackConfig.DEFAULT);
+    }
+
+    public PlayerActor(EntityPlaybackConfig config) {
+        super(config);
+    }
 
     @Override
     protected void registerCreate() {
