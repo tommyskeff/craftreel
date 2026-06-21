@@ -117,7 +117,7 @@ public class SpectatorProtectionHandler extends ReplayHandler {
         for (UUID id : getReplay().getViewers()) {
             Player viewer = Bukkit.getPlayer(id);
             if (viewer != null && viewer.isOnline()) {
-                applyProtection(viewer);
+                enforceProtection(viewer);
             }
         }
     }
@@ -125,13 +125,17 @@ public class SpectatorProtectionHandler extends ReplayHandler {
     private void applyProtection(Player player) {
         player.setGameMode(GameMode.ADVENTURE);
         player.setAllowFlight(true);
-        player.setFireTicks(0);
         player.setHealth(player.getMaxHealth());
         player.setFoodLevel(20);
         player.setSaturation(20F);
         player.setExhaustion(0F);
         player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY,
             Integer.MAX_VALUE, 0, false, false), true);
+        enforceProtection(player);
+    }
+
+    private void enforceProtection(Player player) {
+        player.setFireTicks(0);
     }
 
     private void clearProtection(Player player) {
