@@ -7,7 +7,7 @@ A minimal Spigot/Paper 1.8 plugin demonstrating craftreel recording and playback
 | Command             | Description                                                                 |
 |---------------------|-----------------------------------------------------------------------------|
 | `/reelrecord [name]`| Toggle recording the 4x4 chunk area around you to `<name>.reel`.            |
-| `/reelplay [name]`  | Toggle a looping replay of `<name>.reel` for yourself.                       |
+| `/reelplay [name]`  | Toggle a replay of `<name>.reel` for yourself.                              |
 
 `name` defaults to `demo`. Recordings are saved in `server/plugins/craftreel-example/`.
 

@@ -123,7 +123,7 @@ MinecraftReplay replay = MinecraftReplay.builder()
     .setPlugin(this)
     .addDefaultHandlers()
     .setReelReader(r -> r.setFile(new File(getDataFolder(), "match.reel")))
-    .setLooping(true)
+    .setLooping(false)
     .setSpeed(1.0)
     .build();
 

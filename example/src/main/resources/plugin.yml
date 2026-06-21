@@ -8,5 +8,5 @@ commands:
     description: Start/stop recording the 4x4 chunk area around you to a .reel file.
     usage: /reelrecord [name]
   reelplay:
-    description: Join/leave a looping replay of a .reel file.
+    description: Join/leave a replay of a .reel file.
     usage: /reelplay [name]
