@@ -4,6 +4,8 @@ import dev.tommyjs.craftreel.record.MinecraftRecording;
 import dev.tommyjs.craftreel.record.ObjectiveHandle;
 import dev.tommyjs.craftreel.record.ScoreboardRecorder;
 import dev.tommyjs.craftreel.record.SidebarRecorder;
+import dev.tommyjs.craftreel.record.TabHeaderRecorder;
+import dev.tommyjs.craftreel.record.TabListRecorder;
 import dev.tommyjs.craftreel.record.TeamHandle;
 import dev.tommyjs.craftreel.record.TeamRecorder;
 import dev.tommyjs.craftreel.record.TextRecorder;
@@ -110,6 +112,25 @@ public class CraftReelExamplePlugin extends JavaPlugin implements Listener {
                 .build());
             team.addMembers(Set.of(player.getName()));
 
+            TabHeaderRecorder tabHeaderRecorder = TabHeaderRecorder.attachDefault(recording);
+            tabHeaderRecorder.recordHeader(
+                Component.text("CraftReel Replay", NamedTextColor.GOLD, TextDecoration.BOLD),
+                Component.text("Recorded by " + player.getName(), NamedTextColor.GRAY));
+
+            TabListRecorder tabListRecorder = TabListRecorder.attachDefault(recording);
+            String[] recorderSkin = extractSkin(player);
+            Component recorderDisplay = Component.text("[TARGET] ", NamedTextColor.YELLOW)
+                .append(Component.text(player.getName(), NamedTextColor.RED));
+            tabListRecorder.recordTabEntry(extractProfileId(player), player.getName(),
+                recorderSkin == null ? null : recorderSkin[0], recorderSkin == null ? null : recorderSkin[1],
+                recorderDisplay, 10, 0);
+
+            // Standalone entries not tied to any recorded player entity.
+            tabListRecorder.recordTabEntry(UUID.randomUUID(), "Notch", null, null,
+                Component.text("[ADMIN] ", NamedTextColor.RED).append(Component.text("Notch", NamedTextColor.WHITE)), 25, 1);
+            tabListRecorder.recordTabEntry(UUID.randomUUID(), "Herobrine", null, null,
+                Component.text("[SPEC] ", NamedTextColor.GRAY).append(Component.text("Herobrine", NamedTextColor.GRAY)), 80, 3);
+
             ScoreboardRecorder scoreboardRecorder = ScoreboardRecorder.attachDefault(recording);
             ObjectiveHandle healthObjective = scoreboardRecorder.createObjective("health");
             healthObjective.setInfo(Component.text("❤", NamedTextColor.RED), ScoreboardRenderType.INTEGER, 2);
@@ -191,6 +212,37 @@ public class CraftReelExamplePlugin extends JavaPlugin implements Listener {
         replays.put(player.getUniqueId(), replay);
         player.sendMessage(ChatColor.GREEN + "Playing '" + name + "'. Run /reelplay again to leave.");
         return true;
+    }
+
+    private static UUID extractProfileId(Player player) {
+        try {
+            Object handle = player.getClass().getMethod("getHandle").invoke(player);
+            Object profile = handle.getClass().getMethod("getProfile").invoke(handle);
+            Object id = profile.getClass().getMethod("getId").invoke(profile);
+            if (id instanceof UUID uuid) {
+                return uuid;
+            }
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+        }
+
+        return player.getUniqueId();
+    }
+
+    private static String[] extractSkin(Player player) {
+        try {
+            Object handle = player.getClass().getMethod("getHandle").invoke(player);
+            Object profile = handle.getClass().getMethod("getProfile").invoke(handle);
+            Object properties = profile.getClass().getMethod("getProperties").invoke(profile);
+            Object textures = properties.getClass().getMethod("get", Object.class).invoke(properties, "textures");
+            for (Object property : (Iterable<?>) textures) {
+                String value = (String) property.getClass().getMethod("getValue").invoke(property);
+                String signature = (String) property.getClass().getMethod("getSignature").invoke(property);
+                return new String[]{value, signature};
+            }
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+        }
+
+        return null;
     }
 
     @EventHandler
