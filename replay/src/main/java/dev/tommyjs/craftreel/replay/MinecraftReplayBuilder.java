@@ -67,7 +67,7 @@ public class MinecraftReplayBuilder {
     }
 
     public MinecraftReplayBuilder addDefaultHandlers() {
-        this.handlers.addAll(DefaultHandlers.DEFAULT_HANDLERS);
+        this.handlers.addAll(DefaultHandlers.create());
         return this;
     }
 

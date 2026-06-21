@@ -20,7 +20,8 @@ import java.util.List;
 
 public final class DefaultHandlers {
 
-    public static final List<SceneHandler> DEFAULT_HANDLERS = List.of(
+    public static List<SceneHandler> create() {
+        return List.of(
         ActorHandler.create(Entities.WORLD, WorldActor::new).provides(BaseResources.WORLD),
         ActorHandler.create(Entities.CHUNK_SECTION, ChunkSectionActor::new).consumes(BaseResources.WORLD),
         ActorHandler.create(Entities.SIDEBAR, SidebarActor::new).provides(BaseResources.SIDEBAR),
@@ -43,7 +44,8 @@ public final class DefaultHandlers {
         new SpectatorProtectionHandler(),
         new SpectatorVoidHandler(),
         new ReplayControlsHandler()
-    );
+        );
+    }
 
     private DefaultHandlers() {
     }

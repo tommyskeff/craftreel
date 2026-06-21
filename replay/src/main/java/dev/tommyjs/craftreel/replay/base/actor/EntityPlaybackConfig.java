@@ -31,7 +31,7 @@ public final class EntityPlaybackConfig {
 
     public static final class Builder {
 
-        private double renderDistance = 48.0;
+        private double renderDistance = 192.0;
         private @Nullable Duration tablistLinger = Duration.ofSeconds(3);
 
         private Builder() {
