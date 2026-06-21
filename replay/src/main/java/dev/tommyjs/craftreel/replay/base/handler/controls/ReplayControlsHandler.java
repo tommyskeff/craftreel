@@ -15,6 +15,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.PlayerInventory;
@@ -26,6 +27,7 @@ import java.util.UUID;
 public class ReplayControlsHandler extends ReplayHandler {
 
     private BukkitTask renderTask;
+    private int skipIndex;
 
     @Override
     protected void onLoad(SceneHandlerContext ctx) {
@@ -69,7 +71,9 @@ public class ReplayControlsHandler extends ReplayHandler {
         event.setCancelled(true);
         ReplayControl control = ReplayControls.fromSlot(player.getInventory().getHeldItemSlot());
         if (control != null) {
-            onControl(player, control);
+            boolean leftClick = event.getAction() == Action.LEFT_CLICK_AIR
+                || event.getAction() == Action.LEFT_CLICK_BLOCK;
+            onControl(player, control, leftClick);
         }
     }
 
@@ -81,7 +85,7 @@ public class ReplayControlsHandler extends ReplayHandler {
         }
     }
 
-    private void onControl(Player player, ReplayControl control) {
+    private void onControl(Player player, ReplayControl control, boolean leftClick) {
         ScenePlayer scene = getReplay().getScenePlayer();
         switch (control) {
             case PLAY_PAUSE -> {
@@ -90,13 +94,21 @@ public class ReplayControlsHandler extends ReplayHandler {
                 playSound(player, Sound.CLICK, 1F);
             }
             case FORWARD -> {
-                long frame = Math.min(scene.getTotalFrames() - 1, scene.getCurrentFrame() + ReplayControls.SKIP_FRAMES);
+                if (leftClick) {
+                    cycleSkipInterval(player);
+                    return;
+                }
+                long frame = Math.min(scene.getTotalFrames() - 1, scene.getCurrentFrame() + skipFrames());
                 scene.seek(frame);
                 player.sendMessage(ChatColor.GRAY + "Jumped to frame " + frame + ".");
                 playSound(player, Sound.CLICK, 2F);
             }
             case REWIND -> {
-                long frame = Math.max(0, scene.getCurrentFrame() - ReplayControls.SKIP_FRAMES);
+                if (leftClick) {
+                    cycleSkipInterval(player);
+                    return;
+                }
+                long frame = Math.max(0, scene.getCurrentFrame() - skipFrames());
                 scene.seek(frame);
                 player.sendMessage(ChatColor.GRAY + "Jumped to frame " + frame + ".");
                 playSound(player, Sound.CLICK, 2F);
@@ -124,6 +136,16 @@ public class ReplayControlsHandler extends ReplayHandler {
         renderInfo(player);
     }
 
+    private long skipFrames() {
+        return ReplayControls.SKIP_INTERVALS[skipIndex];
+    }
+
+    private void cycleSkipInterval(Player player) {
+        skipIndex = (skipIndex + 1) % ReplayControls.SKIP_INTERVALS.length;
+        giveControls(player, false);
+        playSound(player, Sound.CLICK, 1.5F);
+    }
+
     public void giveControls(Player player, boolean focus) {
         ScenePlayer scene = getReplay().getScenePlayer();
         double speed = scene.getSpeed();
@@ -133,10 +155,11 @@ public class ReplayControlsHandler extends ReplayHandler {
                 inv.setItem(slot, null);
             }
         }
+        long interval = skipFrames();
         inv.setItem(ReplayControl.SLOWER.slot(), ReplayControls.slower(speed));
-        inv.setItem(ReplayControl.REWIND.slot(), ReplayControls.rewind());
+        inv.setItem(ReplayControl.REWIND.slot(), ReplayControls.rewind(interval));
         inv.setItem(ReplayControl.PLAY_PAUSE.slot(), ReplayControls.playPause(!scene.isPlaying()));
-        inv.setItem(ReplayControl.FORWARD.slot(), ReplayControls.forward());
+        inv.setItem(ReplayControl.FORWARD.slot(), ReplayControls.forward(interval));
         inv.setItem(ReplayControl.FASTER.slot(), ReplayControls.faster(speed));
         if (focus) {
             inv.setHeldItemSlot(ReplayControls.HELD_SLOT);

@@ -17,7 +17,7 @@ import java.util.UUID;
 public final class ReplayControls {
 
     public static final int HELD_SLOT = 4;
-    public static final long SKIP_FRAMES = 5 * 20L;
+    public static final long[] SKIP_INTERVALS = {5 * 20L, 20 * 20L, 60 * 20L, 5 * 60 * 20L, 20 * 60 * 20L};
 
     private static final String REWIND_TEXTURE = "bb84f3a8704eb9256bb392993db56730b79f75ff029c2e35871fdbf3234fb90";
     private static final String FORWARD_TEXTURE = "c86185b1d519ade585f184c34f3f3e20bb641deb879e81378e4eaf209287";
@@ -45,18 +45,20 @@ public final class ReplayControls {
             return false;
         }
         String name = ChatColor.stripColor(meta.getDisplayName());
-        return name.equals("Rewind") || name.equals("Forward") || name.equals("Speed")
+        return name.startsWith("Rewind") || name.startsWith("Forward") || name.equals("Speed")
             || name.equals("Play") || name.equals("Pause");
     }
 
-    public static ItemStack rewind() {
-        return skull(REWIND_TEXTURE, ChatColor.AQUA + "Rewind",
-            ChatColor.GRAY + "Right-click to jump back 5 seconds");
+    public static ItemStack rewind(long interval) {
+        return skull(REWIND_TEXTURE, ChatColor.AQUA + "Rewind (" + intervalLabel(interval) + ")",
+            ChatColor.GRAY + "Right-click to jump back " + intervalLabel(interval),
+            ChatColor.GRAY + "Left-click to change interval");
     }
 
-    public static ItemStack forward() {
-        return skull(FORWARD_TEXTURE, ChatColor.AQUA + "Forward",
-            ChatColor.GRAY + "Right-click to jump ahead 5 seconds");
+    public static ItemStack forward(long interval) {
+        return skull(FORWARD_TEXTURE, ChatColor.AQUA + "Forward (" + intervalLabel(interval) + ")",
+            ChatColor.GRAY + "Right-click to jump ahead " + intervalLabel(interval),
+            ChatColor.GRAY + "Left-click to change interval");
     }
 
     public static ItemStack slower(double speed) {
@@ -75,7 +77,7 @@ public final class ReplayControls {
 
         ItemStack item = new ItemStack(Material.INK_SACK, 1, (short) (paused ? 8 : 10));
         String name = paused ? ChatColor.AQUA + "Play" : ChatColor.AQUA + "Pause";
-        return named(item, name, ChatColor.GRAY + (paused ? "Right-click to play" : "Right-click to pause"));
+        return named(item, name, ChatColor.GRAY + (paused ? "Click to play" : "Click to pause"));
     }
 
     public static String speedLabel(double speed) {
@@ -83,6 +85,11 @@ public final class ReplayControls {
             return "x" + (long) speed;
         }
         return "x" + speed;
+    }
+
+    public static String intervalLabel(long frames) {
+        long seconds = frames / 20L;
+        return seconds < 60 ? seconds + "s" : (seconds / 60) + "m";
     }
 
     private static ItemStack skull(String texture, String name, String... lore) {
