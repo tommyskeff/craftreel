@@ -43,6 +43,7 @@ public class MinecraftReplayImpl implements MinecraftReplay {
     private final Set<UUID> viewers;
     private final Map<UUID, ReplaySpectatorImpl> spectators;
     private final SpectatorRegistry spectatorRegistry;
+    private final ReplayDiagnosticsImpl diagnostics;
 
     private BukkitTask task;
 
@@ -58,6 +59,7 @@ public class MinecraftReplayImpl implements MinecraftReplay {
         this.viewers = ConcurrentHashMap.newKeySet();
         this.spectators = new ConcurrentHashMap<>();
         this.spectatorRegistry = new SpectatorRegistryImpl();
+        this.diagnostics = new ReplayDiagnosticsImpl(Duration.ofSeconds(10));
 
         ReplaySceneBuilder sb = ReplayScene.builder().setTrackRegistry(trackRegistry);
         if (readerConfig != null) {
@@ -101,7 +103,9 @@ public class MinecraftReplayImpl implements MinecraftReplay {
         this.task = new BukkitRunnable() {
             @Override
             public void run() {
+                long start = System.nanoTime();
                 player.tick(Duration.ofMillis(50));
+                diagnostics.recordFrame(System.nanoTime() - start);
             }
         }.runTaskTimer(plugin, 1L, 1L);
         Bukkit.getPluginManager().callEvent(new ReplayStartEvent(this));
@@ -125,6 +129,11 @@ public class MinecraftReplayImpl implements MinecraftReplay {
     @Override
     public ReplaySceneImpl getScene() {
         return scene;
+    }
+
+    @Override
+    public ReplayDiagnostics getDiagnostics() {
+        return diagnostics;
     }
 
     @Override

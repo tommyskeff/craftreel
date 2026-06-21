@@ -25,6 +25,8 @@ public interface MinecraftReplay extends Closeable {
 
     ReplaySceneImpl getScene();
 
+    ReplayDiagnostics getDiagnostics();
+
     Plugin getPlugin();
 
     void addViewer(Player player);

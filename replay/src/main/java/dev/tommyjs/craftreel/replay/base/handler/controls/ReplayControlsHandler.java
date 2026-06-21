@@ -1,5 +1,6 @@
 package dev.tommyjs.craftreel.replay.base.handler.controls;
 
+import dev.tommyjs.craftreel.replay.ReplayDiagnosticsImpl;
 import dev.tommyjs.craftreel.replay.event.PlayerJoinReplayEvent;
 import dev.tommyjs.craftreel.replay.event.PlayerLeaveReplayEvent;
 import dev.tommyjs.craftreel.replay.handler.ReplayHandler;
@@ -97,7 +98,6 @@ public class ReplayControlsHandler extends ReplayHandler {
         switch (control) {
             case PLAY_PAUSE -> {
                 scene.toggle();
-                player.sendMessage(ChatColor.GRAY + (scene.isPlaying() ? "Playing." : "Paused."));
                 playSound(player, Sound.CLICK, 1F);
             }
             case FORWARD -> {
@@ -105,9 +105,7 @@ public class ReplayControlsHandler extends ReplayHandler {
                     cycleSkipInterval(player);
                     return;
                 }
-                long frame = Math.min(scene.getTotalFrames() - 1, scene.getCurrentFrame() + skipFrames());
-                scene.seek(frame);
-                player.sendMessage(ChatColor.GRAY + "Jumped to frame " + frame + ".");
+                seek(scene, Math.min(scene.getTotalFrames() - 1, scene.getCurrentFrame() + skipFrames()));
                 playSound(player, Sound.CLICK, 2F);
             }
             case REWIND -> {
@@ -115,9 +113,7 @@ public class ReplayControlsHandler extends ReplayHandler {
                     cycleSkipInterval(player);
                     return;
                 }
-                long frame = Math.max(0, scene.getCurrentFrame() - skipFrames());
-                scene.seek(frame);
-                player.sendMessage(ChatColor.GRAY + "Jumped to frame " + frame + ".");
+                seek(scene, Math.max(0, scene.getCurrentFrame() - skipFrames()));
                 playSound(player, Sound.CLICK, 2F);
             }
             case SLOWER -> {
@@ -126,7 +122,6 @@ public class ReplayControlsHandler extends ReplayHandler {
                     return;
                 }
                 scene.setSpeed(scene.getSpeed() / 2.0);
-                player.sendMessage(ChatColor.GRAY + "Speed: " + ReplayControls.speedLabel(scene.getSpeed()));
                 playSound(player, Sound.ENDERMAN_IDLE, 2F);
             }
             case FASTER -> {
@@ -135,12 +130,20 @@ public class ReplayControlsHandler extends ReplayHandler {
                     return;
                 }
                 scene.setSpeed(scene.getSpeed() * 2.0);
-                player.sendMessage(ChatColor.GRAY + "Speed: " + ReplayControls.speedLabel(scene.getSpeed()));
                 playSound(player, Sound.ENDERMAN_IDLE, 2F);
             }
         }
         giveControls(player, false);
         renderInfo(player);
+    }
+
+    protected void seek(ScenePlayer scene, long frame) {
+        long from = scene.getCurrentFrame();
+        long start = System.nanoTime();
+        scene.seek(frame);
+        if (getReplay().getDiagnostics() instanceof ReplayDiagnosticsImpl diagnostics) {
+            diagnostics.recordSeek(from, frame, System.nanoTime() - start);
+        }
     }
 
     protected long cooldownMillis() {
@@ -218,22 +221,26 @@ public class ReplayControlsHandler extends ReplayHandler {
     protected void renderInfo(Player player) {
         ScenePlayer scene = getReplay().getScenePlayer();
 
+        WrapperPlayServerChatMessage packet = new WrapperPlayServerChatMessage(
+            new ChatMessageLegacy(Component.text(buildInfo(player)), ChatTypes.GAME_INFO));
+        PacketEvents.getAPI().getPlayerManager().sendPacket(player, packet);
+        player.setExp(clampProgress(scene.getProgress()));
+    }
+
+    protected String buildInfo(Player player) {
+        ScenePlayer scene = getReplay().getScenePlayer();
+
         String status = scene.isPlaying()
             ? ChatColor.GREEN + "Playing"
             : ChatColor.RED + (scene.getProgress() >= 1.0 ? "Finished" : "Paused");
 
-        String info = status
+        return status
             + "    "
             + ChatColor.YELLOW + formatTime(scene.getCurrentTime())
             + " / "
             + formatTime(scene.getTotalTime())
             + "    "
             + ChatColor.GOLD + ReplayControls.speedLabel(scene.getSpeed());
-
-        WrapperPlayServerChatMessage packet = new WrapperPlayServerChatMessage(
-            new ChatMessageLegacy(Component.text(info), ChatTypes.GAME_INFO));
-        PacketEvents.getAPI().getPlayerManager().sendPacket(player, packet);
-        player.setExp(clampProgress(scene.getProgress()));
     }
 
     private static String formatTime(Duration duration) {
