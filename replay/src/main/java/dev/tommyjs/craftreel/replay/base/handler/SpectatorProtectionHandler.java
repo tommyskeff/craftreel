@@ -16,6 +16,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerBedEnterEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -110,6 +111,13 @@ public class SpectatorProtectionHandler extends ReplayHandler {
         Action action = event.getAction();
         if ((action == Action.RIGHT_CLICK_BLOCK || action == Action.PHYSICAL) && isViewer(event.getPlayer())) {
             event.setUseInteractedBlock(Event.Result.DENY);
+        }
+    }
+
+    @EventHandler
+    public void onDrop(PlayerDropItemEvent event) {
+        if (isViewer(event.getPlayer())) {
+            event.setCancelled(true);
         }
     }
 
