@@ -14,15 +14,20 @@ import dev.tommyjs.craftreel.replay.base.BaseResources;
 import dev.tommyjs.craftreel.replay.reference.ContextGroup;
 import dev.tommyjs.craftreel.replay.reference.Viewable;
 import dev.tommyjs.craftreel.replay.reference.ViewerSet;
+import dev.tommyjs.craftreel.util.Identifier;
 import dev.tommyjs.reel.scene.AbstractActor;
+import dev.tommyjs.reel.scene.SceneResourceKey;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 public final class TabEntryActor extends AbstractActor implements Viewable {
+
+    private static final SceneResourceKey<UUID, TabEntryActor> OWNER = SceneResourceKey.of("tab_entry_owner");
 
     private ContextGroup context;
     private UUID profileId;
@@ -37,8 +42,9 @@ public final class TabEntryActor extends AbstractActor implements Viewable {
         onCreate(CraftReelProtocol.Tracks.TAB_ENTRY_META, meta -> {
             context = scene.getResourceManager().require(BaseResources.TAB_LIST, meta.contextId());
             profileId = meta.profileId();
-            profile = createProfile(meta.name(), meta.skinValue(), meta.skinSignature());
+            profile = createProfile(profileUuid(meta.contextId(), profileId), meta.name(), meta.skinValue(), meta.skinSignature());
             scene.getResourceManager().publish(BaseResources.TAB_ENTRY, profileId, profile.getUUID());
+            scene.getResourceManager().publish(OWNER, profile.getUUID(), this);
         });
 
         onState(CraftReelProtocol.Tracks.TAB_ENTRY_STATE, true, s -> state = s);
@@ -46,13 +52,17 @@ public final class TabEntryActor extends AbstractActor implements Viewable {
         onFrame(this::render);
 
         onDestroy(() -> {
+            boolean owner = profile != null && scene.getResourceManager().find(OWNER, profile.getUUID()) == this;
             if (registered) {
-                for (Player viewer : viewers.online()) {
-                    hide(viewer);
+                if (owner) {
+                    for (Player viewer : viewers.online()) {
+                        hide(viewer);
+                    }
                 }
                 context.group().remove(this);
             }
-            if (profileId != null) {
+            if (owner) {
+                scene.getResourceManager().unpublish(OWNER, profile.getUUID());
                 scene.getResourceManager().unpublish(BaseResources.TAB_ENTRY, profileId);
             }
         });
@@ -120,8 +130,11 @@ public final class TabEntryActor extends AbstractActor implements Viewable {
         return mode == null ? GameMode.SURVIVAL : mode;
     }
 
-    private static UserProfile createProfile(String name, String skinValue, String skinSignature) {
-        UUID id = UUID.randomUUID();
+    private static UUID profileUuid(Identifier contextId, UUID profileId) {
+        return UUID.nameUUIDFromBytes((contextId + "/" + profileId).getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static UserProfile createProfile(UUID id, String name, String skinValue, String skinSignature) {
         if (skinValue == null) {
             return new UserProfile(id, name);
         }
