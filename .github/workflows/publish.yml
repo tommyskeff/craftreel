@@ -8,6 +8,8 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      REVISION: ${{ github.event_name == 'release' && format('-Drevision={0}', github.event.release.tag_name) || '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,10 +25,10 @@ jobs:
           server-password: MAVEN_PASSWORD
 
       - name: Run tests
-        run: mvn --batch-mode --no-transfer-progress verify
+        run: mvn --batch-mode --no-transfer-progress verify $REVISION
 
       - name: Publish to repo.tommyjs.dev
-        run: mvn --batch-mode --no-transfer-progress deploy -DskipTests
+        run: mvn --batch-mode --no-transfer-progress deploy -DskipTests $REVISION
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
