@@ -22,6 +22,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -115,7 +116,7 @@ public final class WorldRecorder {
                 }
             }
 
-            @EventHandler
+            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             public void onExplosionPrime(ExplosionPrimeEvent event) {
                 if (event.getEntity().getWorld() != world) {
                     return;
@@ -124,7 +125,7 @@ public final class WorldRecorder {
                 worldEffect.recordExplosion(loc.getX(), loc.getY(), loc.getZ(), event.getRadius());
             }
 
-            @EventHandler
+            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             public void onAnimation(PlayerAnimationEvent event) {
                 Player player = event.getPlayer();
                 if (player.getWorld() != world) {
@@ -136,7 +137,7 @@ public final class WorldRecorder {
                 }
             }
 
-            @EventHandler
+            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             public void onDamage(EntityDamageEvent event) {
                 if (event.getEntity().getWorld() != world) {
                     return;
