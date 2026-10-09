@@ -10,6 +10,11 @@ import dev.tommyjs.craftreel.protocol.text.TextContextModel;
 import dev.tommyjs.craftreel.protocol.title.Title;
 import dev.tommyjs.craftreel.protocol.title.TitleCodec;
 import dev.tommyjs.craftreel.protocol.title.TitleModel;
+import dev.tommyjs.craftreel.protocol.chunk.ChunkSectionBlockEntities;
+import dev.tommyjs.craftreel.protocol.chunk.ChunkSectionBlockEntitiesModel;
+import dev.tommyjs.craftreel.protocol.chunk.ChunkSectionBlockEntitiesStateCodec;
+import dev.tommyjs.craftreel.protocol.chunk.ChunkSectionBlockEntityDelta;
+import dev.tommyjs.craftreel.protocol.chunk.ChunkSectionBlockEntityDeltaCodec;
 import dev.tommyjs.craftreel.protocol.chunk.ChunkSectionContent;
 import dev.tommyjs.craftreel.protocol.chunk.ChunkSectionContentDelta;
 import dev.tommyjs.craftreel.protocol.chunk.ChunkSectionContentDeltaCodec;
@@ -149,6 +154,9 @@ public final class CraftReelProtocol {
         public static final TrackHandle<ChunkSectionContent, ChunkSectionContentDelta> CHUNK_SECTION_CONTENT =
             TrackHandle.of(track("chunk_section_content"), ChunkSectionContent.class, ChunkSectionContentDelta.class);
 
+        public static final TrackHandle<ChunkSectionBlockEntities, ChunkSectionBlockEntityDelta> CHUNK_SECTION_BLOCK_ENTITIES =
+            TrackHandle.of(track("chunk_section_block_entities"), ChunkSectionBlockEntities.class, ChunkSectionBlockEntityDelta.class);
+
         public static final TrackHandle<TextContext, Void> TEXT_META =
             TrackHandle.of(track("text_meta"), TextContext.class, Void.class);
 
@@ -269,6 +277,7 @@ public final class CraftReelProtocol {
             .register(Tracks.WORLD_META, new WorldMetaModel(), new WorldMetaCodec())
             .register(Tracks.CHUNK_SECTION_META, new ChunkSectionMetaModel(), new ChunkSectionMetaCodec())
             .register(Tracks.CHUNK_SECTION_CONTENT, new ChunkSectionContentModel(), new ChunkSectionContentStateCodec(), new ChunkSectionContentDeltaCodec())
+            .register(Tracks.CHUNK_SECTION_BLOCK_ENTITIES, new ChunkSectionBlockEntitiesModel(), new ChunkSectionBlockEntitiesStateCodec(), new ChunkSectionBlockEntityDeltaCodec())
             .register(Tracks.TEXT_META, new TextContextModel(), new TextContextCodec())
             .register(Tracks.SIDEBAR_META, new SidebarMetaModel(), new SidebarMetaCodec())
             .register(Tracks.SIDEBAR, new SidebarModel(), new SidebarStateCodec(), new SidebarDeltaCodec())

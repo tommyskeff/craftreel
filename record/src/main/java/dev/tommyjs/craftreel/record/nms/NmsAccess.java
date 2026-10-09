@@ -4,7 +4,11 @@ import dev.tommyjs.dynworld.block.BlockState;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -26,6 +30,8 @@ public final class NmsAccess {
     private static final Class<?> NMS_BLOCK = forName("net.minecraft.server.v1_8_R3.Block");
     private static final Class<?> NMS_ENUM_PARTICLE = forName("net.minecraft.server.v1_8_R3.EnumParticle");
     private static final Class<?> NMS_ITEMSTACK = forName("net.minecraft.server.v1_8_R3.ItemStack");
+    private static final Class<?> NMS_TILE_ENTITY = forName("net.minecraft.server.v1_8_R3.TileEntity");
+    private static final Class<?> NMS_NBT_COMPOUND = forName("net.minecraft.server.v1_8_R3.NBTTagCompound");
 
     private static final Method CRAFT_ITEMSTACK_AS_BUKKIT = findMethod(
         forName("org.bukkit.craftbukkit.v1_8_R3.inventory.CraftItemStack"), "asBukkitCopy", NMS_ITEMSTACK);
@@ -43,6 +49,14 @@ public final class NmsAccess {
     private static final Method IBD_GET_BLOCK = findMethod(NMS_IBLOCKDATA, "getBlock");
     private static final Method BLOCK_GET_ID = findMethod(NMS_BLOCK, "getId", NMS_BLOCK);
     private static final Method BLOCK_TO_LEGACY = findMethod(NMS_BLOCK, "toLegacyData", NMS_IBLOCKDATA);
+
+    private static final Method WORLD_GET_TILE_ENTITY = findMethod(NMS_WORLD, "getTileEntity", NMS_BLOCK_POSITION);
+    private static final Method TILE_ENTITY_SAVE = findMethod(NMS_TILE_ENTITY, "b", NMS_NBT_COMPOUND);
+    private static final Method TILE_ENTITY_GET_UPDATE_PACKET = findMethod(NMS_TILE_ENTITY, "getUpdatePacket");
+    private static final Constructor<?> NBT_COMPOUND_CTOR = findConstructor(NMS_NBT_COMPOUND);
+    private static final Method NBT_COMPOUND_REMOVE = findMethod(NMS_NBT_COMPOUND, "remove", String.class);
+    private static final Method NBT_WRITE = findMethod(
+        forName("net.minecraft.server.v1_8_R3.NBTCompressedStreamTools"), "a", NMS_NBT_COMPOUND, DataOutput.class);
 
     private static final Method PARTICLE_VALUES = findMethod(NMS_ENUM_PARTICLE, "values");
     private static final Method PARTICLE_ID = findMethod(NMS_ENUM_PARTICLE, "c");
@@ -73,6 +87,29 @@ public final class NmsAccess {
             return BlockState.of(id, data);
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException("Failed to read NMS block state", e);
+        }
+    }
+
+    public static byte @Nullable [] readBlockEntity(World world, int x, int y, int z) {
+        try {
+            Object handle = CRAFT_WORLD_GET_HANDLE.invoke(world);
+            Object position = BLOCK_POSITION_CTOR.newInstance(x, y, z);
+            Object tileEntity = WORLD_GET_TILE_ENTITY.invoke(handle, position);
+            if (tileEntity == null || TILE_ENTITY_GET_UPDATE_PACKET.invoke(tileEntity) == null) {
+                return null;
+            }
+
+            Object tag = NBT_COMPOUND_CTOR.newInstance();
+            TILE_ENTITY_SAVE.invoke(tileEntity, tag);
+            NBT_COMPOUND_REMOVE.invoke(tag, "x");
+            NBT_COMPOUND_REMOVE.invoke(tag, "y");
+            NBT_COMPOUND_REMOVE.invoke(tag, "z");
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            NBT_WRITE.invoke(null, tag, new DataOutputStream(out));
+            return out.toByteArray();
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("Failed to read NMS block entity", e);
         }
     }
 

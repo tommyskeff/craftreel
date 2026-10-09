@@ -213,6 +213,7 @@ public final class WorldRecorder {
             return;
         }
 
+        blockRecorder.tick();
         registry.tickAll();
         EnvironmentState environment = new EnvironmentState(identifier, world.getFullTime(), world.hasStorm(),
             world.isThundering());
