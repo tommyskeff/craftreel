@@ -10,7 +10,11 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.logging.Level;
 
 public class MinecraftRecordingImpl implements MinecraftRecording {
@@ -19,6 +23,7 @@ public class MinecraftRecordingImpl implements MinecraftRecording {
     private final ReelRecorder recorder;
     private final List<Runnable> stopListeners = new ArrayList<>();
     private final List<Runnable> tickListeners = new ArrayList<>();
+    private final Map<Class<?>, Object> defaults = Collections.synchronizedMap(new HashMap<>());
 
     private BukkitTask task;
     private boolean running;
@@ -110,6 +115,11 @@ public class MinecraftRecordingImpl implements MinecraftRecording {
     @Override
     public void addStopListener(Runnable listener) {
         stopListeners.add(listener);
+    }
+
+    @Override
+    public <T> T getDefault(Class<T> type, Function<? super MinecraftRecording, ? extends T> factory) {
+        return type.cast(defaults.computeIfAbsent(type, t -> factory.apply(this)));
     }
 
     @Override

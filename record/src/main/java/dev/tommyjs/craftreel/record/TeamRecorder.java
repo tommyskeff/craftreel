@@ -8,14 +8,8 @@ import dev.tommyjs.craftreel.protocol.team.TeamsMeta;
 import dev.tommyjs.reel.recorder.EntityRecorder;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.WeakHashMap;
 
 public final class TeamRecorder {
-
-    private static final Map<MinecraftRecording, TeamRecorder> DEFAULTS =
-        Collections.synchronizedMap(new WeakHashMap<>());
 
     private final MinecraftRecording recording;
     private final Identifier contextId;
@@ -32,7 +26,7 @@ public final class TeamRecorder {
     }
 
     public static @NotNull TeamRecorder attachDefault(@NotNull MinecraftRecording recording) {
-        return DEFAULTS.computeIfAbsent(recording,
+        return recording.getDefault(TeamRecorder.class,
             r -> attach(r, CraftReelProtocol.Defaults.TEAM));
     }
 
