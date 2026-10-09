@@ -10,16 +10,11 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.WeakHashMap;
 
 public final class TabListRecorder {
-
-    private static final Map<MinecraftRecording, TabListRecorder> DEFAULTS =
-        Collections.synchronizedMap(new WeakHashMap<>());
 
     private final MinecraftRecording recording;
     private final Identifier id;
@@ -37,7 +32,7 @@ public final class TabListRecorder {
     }
 
     public static @NotNull TabListRecorder attachDefault(@NotNull MinecraftRecording recording) {
-        return DEFAULTS.computeIfAbsent(recording,
+        return recording.getDefault(TabListRecorder.class,
             r -> attach(r, CraftReelProtocol.Defaults.TAB_LIST));
     }
 

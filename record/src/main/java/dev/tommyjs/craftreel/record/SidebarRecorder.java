@@ -10,14 +10,8 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Collections;
-import java.util.Map;
-import java.util.WeakHashMap;
 
 public final class SidebarRecorder {
-
-    private static final Map<MinecraftRecording, SidebarRecorder> DEFAULTS =
-        Collections.synchronizedMap(new WeakHashMap<>());
 
     private final EntityRecorder recorder;
     private final java.util.List<net.kyori.adventure.text.Component> last = new java.util.ArrayList<>();
@@ -34,7 +28,7 @@ public final class SidebarRecorder {
     }
 
     public static SidebarRecorder attachDefault(@NotNull MinecraftRecording recording) {
-        return DEFAULTS.computeIfAbsent(recording,
+        return recording.getDefault(SidebarRecorder.class,
             r -> attach(r, CraftReelProtocol.Defaults.SIDEBAR));
     }
 

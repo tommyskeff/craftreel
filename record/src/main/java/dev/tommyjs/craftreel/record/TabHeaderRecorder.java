@@ -8,14 +8,8 @@ import dev.tommyjs.reel.recorder.EntityRecorder;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.WeakHashMap;
 
 public final class TabHeaderRecorder {
-
-    private static final Map<MinecraftRecording, TabHeaderRecorder> DEFAULTS =
-        Collections.synchronizedMap(new WeakHashMap<>());
 
     private final EntityRecorder recorder;
 
@@ -30,7 +24,7 @@ public final class TabHeaderRecorder {
     }
 
     public static @NotNull TabHeaderRecorder attachDefault(@NotNull MinecraftRecording recording) {
-        return DEFAULTS.computeIfAbsent(recording,
+        return recording.getDefault(TabHeaderRecorder.class,
             r -> attach(r, CraftReelProtocol.Defaults.TAB_HEADER));
     }
 
