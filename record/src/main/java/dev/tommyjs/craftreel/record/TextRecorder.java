@@ -8,14 +8,7 @@ import dev.tommyjs.craftreel.protocol.title.Title;
 import dev.tommyjs.reel.recorder.EntityRecorder;
 import net.kyori.adventure.text.Component;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.WeakHashMap;
-
 public final class TextRecorder {
-
-    private static final Map<MinecraftRecording, TextRecorder> DEFAULTS =
-        Collections.synchronizedMap(new WeakHashMap<>());
 
     private final EntityRecorder recorder;
 
@@ -30,7 +23,7 @@ public final class TextRecorder {
     }
 
     public static TextRecorder attachDefault(MinecraftRecording recording) {
-        return DEFAULTS.computeIfAbsent(recording,
+        return recording.getDefault(TextRecorder.class,
             r -> attach(r, CraftReelProtocol.Defaults.TEXT));
     }
 
