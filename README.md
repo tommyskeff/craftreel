@@ -31,7 +31,7 @@ To record and replay on a server, depend on `craftreel-all`. It is a
 <dependency>
     <groupId>dev.tommyjs</groupId>
     <artifactId>craftreel-all</artifactId>
-    <version>0.6.0</version>
+    <version>0.6.1</version>
     <type>pom</type>
 </dependency>
 ```
@@ -42,7 +42,7 @@ To only read or write recordings, depend on `craftreel-common`:
 <dependency>
     <groupId>dev.tommyjs</groupId>
     <artifactId>craftreel-common</artifactId>
-    <version>0.6.0</version>
+    <version>0.6.1</version>
 </dependency>
 ```
 
