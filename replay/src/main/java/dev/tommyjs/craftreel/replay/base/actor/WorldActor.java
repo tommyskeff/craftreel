@@ -45,7 +45,7 @@ public final class WorldActor extends AbstractActor implements WorldContext {
 
             World bukkit = world.getBukkitWorld();
             bukkit.setGameRuleValue("doDaylightCycle", "false");
-            bukkit.setGameRuleValue("doWeatherCycle", "false");
+            pinWeather(bukkit);
 
             group.add(new Viewable() {
                 @Override
@@ -67,6 +67,7 @@ public final class WorldActor extends AbstractActor implements WorldContext {
             bukkit.setFullTime(environment.time());
             bukkit.setStorm(environment.storm());
             bukkit.setThundering(environment.thundering());
+            pinWeather(bukkit);
         });
 
         onDestroy(() -> {
@@ -84,6 +85,11 @@ public final class WorldActor extends AbstractActor implements WorldContext {
             group.clear();
             DynamicWorldManager.DEFAULT.unload(world);
         });
+    }
+
+    private static void pinWeather(@NotNull World bukkit) {
+        bukkit.setWeatherDuration(Integer.MAX_VALUE);
+        bukkit.setThunderDuration(Integer.MAX_VALUE);
     }
 
     @Override
