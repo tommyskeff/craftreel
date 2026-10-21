@@ -24,6 +24,7 @@ import dev.tommyjs.dynworld.entity.PlayerEntity;
 import dev.tommyjs.dynworld.entity.VirtualEntity;
 import dev.tommyjs.reel.scene.AbstractActor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +47,9 @@ public abstract class AbstractTrackedActor extends AbstractActor {
     private EntityTracker tracker;
     private VirtualEntity entity;
     private UUID entityKey;
+    private WorldContext world;
+    private EntityPose pose = ORIGIN;
+    private boolean present = true;
 
     protected AbstractTrackedActor(@NotNull EntityPlaybackConfig config) {
         this.config = config;
@@ -57,10 +61,16 @@ public abstract class AbstractTrackedActor extends AbstractActor {
     protected final void configure() {
         registerCreate();
 
-        onState(CraftReelProtocol.Tracks.ENTITY_POSE, true, pose -> entity.move(toPose(pose), transition.isSingleForwardStep()));
+        onState(CraftReelProtocol.Tracks.ENTITY_POSE, true, pose -> {
+            this.pose = toPose(pose);
+            entity.move(this.pose, transition.isSingleForwardStep());
+        });
         onState(CraftReelProtocol.Tracks.ENTITY_METADATA, true, state -> entity.setMetadata(toEntityData(state)));
         onState(CraftReelProtocol.Tracks.ENTITY_EQUIPMENT, true, state -> entity.setEquipment(toEquipment(state)));
-        onState(CraftReelProtocol.Tracks.ENTITY_PRESENCE, true, state -> entity.setPresent(state.present()));
+        onState(CraftReelProtocol.Tracks.ENTITY_PRESENCE, true, state -> {
+            this.present = state.present();
+            entity.setPresent(this.present);
+        });
         onEvent(CraftReelProtocol.Tracks.ENTITY_VELOCITY, velocity -> entity.setVelocity(new Vector3d(velocity.x(), velocity.y(), velocity.z())));
         onEvent(CraftReelProtocol.Tracks.ENTITY_ANIMATION, this::animate);
 
@@ -77,6 +87,7 @@ public abstract class AbstractTrackedActor extends AbstractActor {
 
     protected void install(@NotNull UUID id, @NotNull Identifier worldId, @NotNull Function<EntityTracker, VirtualEntity> factory) {
         WorldContext context = scene.getResourceManager().require(BaseResources.WORLD, worldId);
+        this.world = context;
         this.tracker = context.tracker();
         this.entity = factory.apply(tracker);
         this.entityKey = id;
@@ -86,6 +97,22 @@ public abstract class AbstractTrackedActor extends AbstractActor {
         }
         scene.getResourceManager().publish(BaseResources.ENTITY_ID, id, (IntSupplier) entity::entityId);
         onEntitySpawned(entity);
+    }
+
+    protected final @Nullable WorldContext world() {
+        return world;
+    }
+
+    protected final int entityId() {
+        return entity == null ? -1 : entity.entityId();
+    }
+
+    protected final @NotNull EntityPose pose() {
+        return pose;
+    }
+
+    protected final boolean present() {
+        return present;
     }
 
     protected void onEntitySpawned(@NotNull VirtualEntity entity) {

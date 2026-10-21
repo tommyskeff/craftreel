@@ -46,7 +46,7 @@ public final class ReplayControls {
         }
         String name = ChatColor.stripColor(meta.getDisplayName());
         return name.startsWith("Rewind") || name.startsWith("Forward") || name.equals("Speed")
-            || name.equals("Play") || name.equals("Pause");
+            || name.equals("Play") || name.equals("Pause") || name.equals("Live");
     }
 
     public static ItemStack rewind(long interval) {
@@ -78,6 +78,11 @@ public final class ReplayControls {
         ItemStack item = new ItemStack(Material.INK_SACK, 1, (short) (paused ? 8 : 10));
         String name = paused ? ChatColor.AQUA + "Play" : ChatColor.AQUA + "Pause";
         return named(item, name, ChatColor.GRAY + (paused ? "Click to play" : "Click to pause"));
+    }
+
+    public static ItemStack live() {
+        return named(new ItemStack(Material.INK_SACK, 1, (short) 1), ChatColor.AQUA + "Live",
+            ChatColor.GRAY + "Click to jump back to live");
     }
 
     public static String speedLabel(double speed) {

@@ -1,9 +1,11 @@
 package dev.tommyjs.craftreel.replay.base.handler.controls;
 
+import dev.tommyjs.craftreel.replay.LiveMinecraftReplay;
 import dev.tommyjs.craftreel.replay.ReplayDiagnosticsImpl;
 import dev.tommyjs.craftreel.replay.base.BaseResources;
 import dev.tommyjs.craftreel.replay.event.PlayerJoinReplayEvent;
 import dev.tommyjs.craftreel.replay.event.PlayerLeaveReplayEvent;
+import dev.tommyjs.craftreel.replay.event.SpectatorCameraEvent;
 import dev.tommyjs.craftreel.replay.handler.ReplayHandler;
 import dev.tommyjs.craftreel.replay.reference.WorldContext;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -11,6 +13,7 @@ import com.github.retrooper.packetevents.protocol.chat.ChatTypes;
 import com.github.retrooper.packetevents.protocol.chat.message.ChatMessageLegacy;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChatMessage;
 import dev.tommyjs.reel.scene.SceneHandlerContext;
+import dev.tommyjs.reel.scene.player.PlaybackState;
 import dev.tommyjs.reel.scene.player.ScenePlayer;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -88,6 +91,19 @@ public class ReplayControlsHandler extends ReplayHandler {
     }
 
     @EventHandler
+    public void onCamera(SpectatorCameraEvent event) {
+        if (event.getReplay() != getReplay()) {
+            return;
+        }
+
+        if (event.isAttached()) {
+            clearControls(event.getPlayer());
+        } else {
+            giveControls(event.getPlayer(), true);
+        }
+    }
+
+    @EventHandler
     public void onClick(InventoryClickEvent event) {
         if (event.getWhoClicked() instanceof Player player && isViewer(player)
             && ReplayControls.isControl(event.getCurrentItem())) {
@@ -98,7 +114,15 @@ public class ReplayControlsHandler extends ReplayHandler {
     protected void onControl(Player player, ReplayControl control, boolean leftClick) {
         ScenePlayer scene = getReplay().getScenePlayer();
         switch (control) {
+            case LIVE -> {
+                if (!(getReplay() instanceof LiveMinecraftReplay live)) {
+                    return;
+                }
+                live.setFollowingLive(true);
+                playSound(player, Sound.LEVEL_UP, 2F);
+            }
             case PLAY_PAUSE -> {
+                detachFromLive();
                 scene.toggle();
                 playSound(player, Sound.CLICK, 1F);
             }
@@ -107,6 +131,7 @@ public class ReplayControlsHandler extends ReplayHandler {
                     cycleSkipInterval(player);
                     return;
                 }
+                detachFromLive();
                 seek(scene, Math.min(scene.getTotalFrames() - 1, scene.getCurrentFrame() + skipFrames()));
                 playSound(player, Sound.CLICK, 2F);
             }
@@ -115,6 +140,7 @@ public class ReplayControlsHandler extends ReplayHandler {
                     cycleSkipInterval(player);
                     return;
                 }
+                detachFromLive();
                 seek(scene, Math.max(0, scene.getCurrentFrame() - skipFrames()));
                 playSound(player, Sound.CLICK, 2F);
             }
@@ -123,6 +149,7 @@ public class ReplayControlsHandler extends ReplayHandler {
                     playSound(player, Sound.ENDERMAN_TELEPORT, 0.5F);
                     return;
                 }
+                detachFromLive();
                 scene.setSpeed(scene.getSpeed() / 2.0);
                 playSound(player, Sound.ENDERMAN_IDLE, 2F);
             }
@@ -131,12 +158,19 @@ public class ReplayControlsHandler extends ReplayHandler {
                     playSound(player, Sound.ENDERMAN_TELEPORT, 0.5F);
                     return;
                 }
+                detachFromLive();
                 scene.setSpeed(scene.getSpeed() * 2.0);
                 playSound(player, Sound.ENDERMAN_IDLE, 2F);
             }
         }
         giveControls(player, false);
         renderInfo(player);
+    }
+
+    protected void detachFromLive() {
+        if (getReplay() instanceof LiveMinecraftReplay live) {
+            live.setFollowingLive(false);
+        }
     }
 
     protected void seek(ScenePlayer scene, long frame) {
@@ -180,9 +214,8 @@ public class ReplayControlsHandler extends ReplayHandler {
     public void giveControls(Player player, boolean focus) {
         ScenePlayer scene = getReplay().getScenePlayer();
         PlayerInventory inv = player.getInventory();
-        for (int slot = 0; slot < 9; slot++) {
-            ReplayControl control = ReplayControls.fromSlot(slot);
-            inv.setItem(slot, control == null ? null : getControlItem(player, control, scene));
+        for (ReplayControl control : ReplayControl.values()) {
+            inv.setItem(control.slot(), getControlItem(player, control, scene));
         }
         if (focus) {
             inv.setHeldItemSlot(ReplayControls.HELD_SLOT);
@@ -200,6 +233,9 @@ public class ReplayControlsHandler extends ReplayHandler {
             case PLAY_PAUSE -> ReplayControls.playPause(!scene.isPlaying());
             case FORWARD -> ReplayControls.forward(interval);
             case FASTER -> ReplayControls.faster(speed);
+            case LIVE -> getReplay() instanceof LiveMinecraftReplay live && !live.isFollowingLive()
+                ? ReplayControls.live()
+                : null;
         };
     }
 
@@ -231,7 +267,16 @@ public class ReplayControlsHandler extends ReplayHandler {
         WrapperPlayServerChatMessage packet = new WrapperPlayServerChatMessage(
             new ChatMessageLegacy(Component.text(buildInfo(player)), ChatTypes.GAME_INFO));
         PacketEvents.getAPI().getPlayerManager().sendPacket(player, packet);
-        player.setExp(clampProgress(scene.getProgress()));
+        player.setExp(clampProgress(progress(scene)));
+    }
+
+    protected double progress(ScenePlayer scene) {
+        if (!(getReplay() instanceof LiveMinecraftReplay live)) {
+            return scene.getProgress();
+        }
+
+        long target = live.getScenePlayer().getLiveTargetFrame();
+        return target <= 0 ? 0.0 : (double) scene.getCurrentFrame() / target;
     }
 
     protected String buildInfo(Player player) {
@@ -239,15 +284,28 @@ public class ReplayControlsHandler extends ReplayHandler {
 
         String status = scene.isPlaying()
             ? ChatColor.GREEN + "Playing"
-            : ChatColor.RED + (scene.getProgress() >= 1.0 ? "Finished" : "Paused");
+            : ChatColor.RED + (scene.getState() == PlaybackState.ENDED ? "Finished" : "Paused");
 
         return status
             + "    "
-            + ChatColor.YELLOW + formatTime(scene.getCurrentTime())
-            + " / "
-            + formatTime(scene.getTotalTime())
+            + timeLabel(scene)
             + "    "
             + ChatColor.GOLD + ReplayControls.speedLabel(scene.getSpeed());
+    }
+
+    protected String timeLabel(ScenePlayer scene) {
+        String current = formatTime(scene.getCurrentTime());
+        if (!(getReplay() instanceof LiveMinecraftReplay live)) {
+            return ChatColor.YELLOW + current + " / " + formatTime(scene.getTotalTime());
+        }
+
+        if (live.isFollowingLive()) {
+            return ChatColor.RED.toString() + ChatColor.BOLD + "● LIVE " + ChatColor.YELLOW + current;
+        }
+
+        long edge = live.getScenePlayer().getLiveTargetFrame();
+        return ChatColor.YELLOW + current + " / "
+            + formatTime(Duration.ofMillis(edge * 1000L / scene.getBaseFps()));
     }
 
     private static String formatTime(Duration duration) {
@@ -256,6 +314,9 @@ public class ReplayControlsHandler extends ReplayHandler {
     }
 
     private static float clampProgress(double progress) {
+        if (Double.isNaN(progress)) {
+            return 0F;
+        }
         return (float) Math.max(0.0, Math.min(1.0, progress));
     }
 

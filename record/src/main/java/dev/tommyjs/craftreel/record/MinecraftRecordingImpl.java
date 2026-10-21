@@ -23,6 +23,7 @@ public class MinecraftRecordingImpl implements MinecraftRecording {
     private final ReelRecorder recorder;
     private final List<Runnable> stopListeners = new ArrayList<>();
     private final List<Runnable> tickListeners = new ArrayList<>();
+    private final List<Runnable> postTickListeners = new ArrayList<>();
     private final Map<Class<?>, Object> defaults = Collections.synchronizedMap(new HashMap<>());
 
     private BukkitTask task;
@@ -43,14 +44,9 @@ public class MinecraftRecordingImpl implements MinecraftRecording {
         this.task = new BukkitRunnable() {
             @Override
             public void run() {
-                for (Runnable listener : new ArrayList<>(tickListeners)) {
-                    try {
-                        listener.run();
-                    } catch (Throwable t) {
-                        plugin.getLogger().log(Level.WARNING, "craftreel tick listener failed", t);
-                    }
-                }
+                dispatch(tickListeners, "tick");
                 recorder.advanceFrame();
+                dispatch(postTickListeners, "post-tick");
             }
         }.runTaskTimer(plugin, 1L, 1L);
 
@@ -113,6 +109,11 @@ public class MinecraftRecordingImpl implements MinecraftRecording {
     }
 
     @Override
+    public void addPostTickListener(Runnable listener) {
+        postTickListeners.add(listener);
+    }
+
+    @Override
     public void addStopListener(Runnable listener) {
         stopListeners.add(listener);
     }
@@ -125,6 +126,16 @@ public class MinecraftRecordingImpl implements MinecraftRecording {
     @Override
     public void close() {
         stop();
+    }
+
+    private void dispatch(List<Runnable> listeners, String stage) {
+        for (Runnable listener : new ArrayList<>(listeners)) {
+            try {
+                listener.run();
+            } catch (Throwable t) {
+                plugin.getLogger().log(Level.WARNING, "craftreel " + stage + " listener failed", t);
+            }
+        }
     }
 
 }
