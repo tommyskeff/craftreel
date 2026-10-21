@@ -18,6 +18,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
@@ -28,6 +29,7 @@ import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -43,6 +45,9 @@ public class SpectatorNavigationHandler extends ReplayHandler {
     private static final double FOLLOW_RANGE_SQUARED = 64D;
     private static final double EYE_HEIGHT = 1.62;
     private static final double TELEPORT_DISTANCE = 3D;
+    private static final double CLEARANCE_STEP = 0.25D;
+    private static final double VIEWER_HEIGHT = 1.8D;
+    private static final double VIEWER_HALF_WIDTH = 0.3D;
 
     private final Map<UUID, UUID> following = new HashMap<>();
     private final Map<UUID, UUID> selected = new HashMap<>();
@@ -229,11 +234,47 @@ public class SpectatorNavigationHandler extends ReplayHandler {
             return;
         }
 
-        Location to = target.clone();
-        to.setPitch(0F);
-        to.add(to.getDirection().multiply(-TELEPORT_DISTANCE));
-        to.setY(target.getY() + EYE_HEIGHT);
-        viewer.teleport(to);
+        Location start = target.clone();
+        start.setPitch(0F);
+        start.add(start.getDirection().multiply(-TELEPORT_DISTANCE));
+        start.setY(target.getY() + EYE_HEIGHT);
+        viewer.teleport(clearLocationToward(start, target));
+    }
+
+    private Location clearLocationToward(Location start, Location target) {
+        Vector path = target.toVector().subtract(start.toVector());
+        int steps = (int) Math.ceil(path.length() / CLEARANCE_STEP);
+        Vector step = path.multiply(1D / steps);
+
+        Location at = start.clone();
+        for (int i = 0; i < steps; i++) {
+            if (isClear(at)) {
+                return at;
+            }
+            at.add(step);
+        }
+
+        Location end = target.clone();
+        end.setPitch(start.getPitch());
+        return end;
+    }
+
+    private boolean isClear(Location location) {
+        World world = location.getWorld();
+        int minY = location.getBlockY();
+        int maxY = Location.locToBlock(location.getY() + VIEWER_HEIGHT);
+        for (double dx : new double[] {-VIEWER_HALF_WIDTH, VIEWER_HALF_WIDTH}) {
+            for (double dz : new double[] {-VIEWER_HALF_WIDTH, VIEWER_HALF_WIDTH}) {
+                int x = Location.locToBlock(location.getX() + dx);
+                int z = Location.locToBlock(location.getZ() + dz);
+                for (int y = minY; y <= maxY; y++) {
+                    if (world.getBlockAt(x, y, z).getType().isSolid()) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     protected void setTarget(Player viewer, UUID target) {
