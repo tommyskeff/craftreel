@@ -6,7 +6,8 @@ public enum ReplayControl {
     REWIND(3),
     PLAY_PAUSE(4),
     FORWARD(5),
-    FASTER(6);
+    FASTER(6),
+    LIVE(8);
 
     private final int slot;
 

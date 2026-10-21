@@ -4,6 +4,7 @@ import dev.tommyjs.craftreel.replay.handler.SpectatorRegistry;
 import dev.tommyjs.craftreel.util.Identifier;
 import dev.tommyjs.craftreel.replay.reference.ContextGroup;
 import dev.tommyjs.craftreel.replay.reference.Viewable;
+import dev.tommyjs.craftreel.replay.reference.ReplayPlayer;
 import dev.tommyjs.craftreel.replay.reference.ViewerContext;
 import dev.tommyjs.craftreel.replay.reference.WorldContext;
 import dev.tommyjs.reel.scene.SceneResourceKey;
@@ -21,6 +22,7 @@ public final class BaseResources {
     public static final SceneResourceKey<Identifier, ContextGroup> SCOREBOARD = SceneResourceKey.of("scoreboard");
     public static final SceneResourceKey<Identifier, ContextGroup> TEAM = SceneResourceKey.of("team");
     public static final SceneResourceKey<UUID, IntSupplier> ENTITY_ID = SceneResourceKey.of("entity_id");
+    public static final SceneResourceKey<UUID, ReplayPlayer> PLAYER = SceneResourceKey.of("player");
     public static final SceneResourceKey<Identifier, ViewerContext> CHAT = SceneResourceKey.of("chat");
     public static final SceneResourceKey<Identifier, ViewerContext> TITLE = SceneResourceKey.of("title");
     public static final SceneResourceKey<Identifier, Viewable> EFFECTS = SceneResourceKey.of("effects");

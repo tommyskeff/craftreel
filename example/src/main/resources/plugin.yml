@@ -10,3 +10,9 @@ commands:
   reelplay:
     description: Join/leave a replay of a .reel file.
     usage: /reelplay [name]
+  reellive:
+    description: Start/stop recording yourself into a live replay with a fixed delay.
+    usage: /reellive [delaySeconds]
+  reelwatch:
+    description: Join/leave a running live replay.
+    usage: /reelwatch [player]

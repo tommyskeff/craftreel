@@ -7,9 +7,11 @@ import dev.tommyjs.craftreel.replay.base.handler.DefaultContextSpectatorHandler;
 import dev.tommyjs.craftreel.replay.base.handler.SpectatorWorldSelectionHandler;
 import dev.tommyjs.craftreel.replay.base.handler.SpectatorProtectionHandler;
 import dev.tommyjs.craftreel.replay.base.handler.SpectatorVoidHandler;
+import dev.tommyjs.craftreel.replay.base.handler.SpectatorIsolationHandler;
 import dev.tommyjs.craftreel.replay.base.handler.SpectatorRegistryHandler;
 import dev.tommyjs.craftreel.replay.base.handler.SpectatorTrackerFlushHandler;
 import dev.tommyjs.craftreel.replay.base.handler.controls.ReplayControlsHandler;
+import dev.tommyjs.craftreel.replay.base.handler.navigation.SpectatorNavigationHandler;
 import dev.tommyjs.reel.scene.ActorHandler;
 import dev.tommyjs.reel.scene.SceneHandler;
 import dev.tommyjs.craftreel.protocol.CraftReelProtocol.Entities;
@@ -18,11 +20,18 @@ import dev.tommyjs.craftreel.protocol.scoreboard.ScoreboardMeta;
 import dev.tommyjs.craftreel.protocol.tab.TabListMeta;
 import dev.tommyjs.craftreel.protocol.team.TeamsMeta;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class DefaultHandlers {
 
     public static List<SceneHandler> create() {
+        List<SceneHandler> handlers = new ArrayList<>(scene());
+        handlers.addAll(controls());
+        return List.copyOf(handlers);
+    }
+
+    public static List<SceneHandler> scene() {
         return List.of(
         ActorHandler.create(Entities.WORLD, WorldActor::new).provides(BaseResources.WORLD),
         ActorHandler.create(Entities.CHUNK_SECTION, ChunkSectionActor::new).consumes(BaseResources.WORLD),
@@ -49,8 +58,16 @@ public final class DefaultHandlers {
         new SpectatorTrackerFlushHandler(),
         new SpectatorProtectionHandler(),
         new SpectatorVoidHandler(),
-        new ReplayControlsHandler()
+        new SpectatorIsolationHandler()
         );
+    }
+
+    public static List<SceneHandler> controls() {
+        return List.of(new ReplayControlsHandler());
+    }
+
+    public static List<SceneHandler> navigation() {
+        return List.of(new SpectatorNavigationHandler());
     }
 
     private DefaultHandlers() {
