@@ -14,6 +14,7 @@ import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,7 +40,7 @@ public class PlayerActor extends AbstractTrackedActor {
             UserProfile profile = tablistOwned
                 ? new UserProfile(tabEntryUuid, meta.name())
                 : createProfile(meta);
-            install(meta.id(), meta.worldId(), tracker -> tracker.spawnPlayer(profile, ORIGIN));
+            install(meta.id(), meta.worldId(), tracker -> tracker.spawnPlayer(recordedEntityId(), profile, ORIGIN));
             scene.getResourceManager().publish(BaseResources.PLAYER, meta.id(), new Navigable());
         });
 
@@ -58,7 +59,7 @@ public class PlayerActor extends AbstractTrackedActor {
     }
 
     private static UserProfile createProfile(PlayerMeta meta) {
-        UUID profileId = UUID.randomUUID();
+        UUID profileId = UUID.nameUUIDFromBytes(("player/" + meta.id()).getBytes(StandardCharsets.UTF_8));
         if (meta.skinValue() == null) {
             return new UserProfile(profileId, meta.name());
         }

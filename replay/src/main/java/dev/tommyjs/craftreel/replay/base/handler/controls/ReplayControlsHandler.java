@@ -67,7 +67,7 @@ public class ReplayControlsHandler extends ReplayHandler {
 
     @EventHandler
     public void onLeave(PlayerLeaveReplayEvent event) {
-        if (event.getReplay() == getReplay() && event.getPlayer().isOnline()) {
+        if (event.getReplay() == getReplay() && !event.isTransfer() && event.getPlayer().isOnline()) {
             clearControls(event.getPlayer());
         }
     }

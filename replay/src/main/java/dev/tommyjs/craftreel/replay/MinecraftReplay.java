@@ -33,6 +33,8 @@ public interface MinecraftReplay extends Closeable {
 
     void removeViewer(Player player);
 
+    void transferViewer(Player player, MinecraftReplay target, ViewerWorldChange worldChange);
+
     Set<UUID> getViewers();
 
     Collection<Player> getOnlineViewers();

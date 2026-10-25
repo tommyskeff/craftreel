@@ -3,6 +3,7 @@ package dev.tommyjs.craftreel.replay.base.actor;
 import dev.tommyjs.craftreel.util.Identifier;
 import dev.tommyjs.craftreel.protocol.CraftReelProtocol;
 import dev.tommyjs.reel.scene.AbstractActor;
+import dev.tommyjs.craftreel.replay.ViewerHandover;
 import dev.tommyjs.craftreel.replay.base.BaseResources;
 import dev.tommyjs.craftreel.replay.base.ViewerContexts;
 import dev.tommyjs.craftreel.replay.handler.SpectatorRegistry;
@@ -74,6 +75,26 @@ public class SidebarActor extends AbstractActor implements ViewerContext {
         if (board != null) {
             board.delete();
         }
+    }
+
+    @Override
+    public void handOff(@NotNull Player player, @NotNull ViewerHandover handover) {
+        FastBoard board = boards.remove(player.getUniqueId());
+        if (board != null) {
+            handover.hold(SidebarActor.class, board, board::delete);
+        }
+    }
+
+    @Override
+    public void takeOver(@NotNull Player player, @NotNull ViewerHandover handover) {
+        FastBoard board = handover.take(SidebarActor.class, FastBoard.class);
+        if (board == null || board.isDeleted()) {
+            addViewer(player);
+            return;
+        }
+        ViewerContexts.makeExclusive(scene.getResourceManager(), BaseResources.SIDEBAR, this, player);
+        boards.put(player.getUniqueId(), board);
+        paint(board);
     }
 
     private void refreshBoards() {
