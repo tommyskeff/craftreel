@@ -11,6 +11,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUp
 import dev.tommyjs.craftreel.protocol.CraftReelProtocol;
 import dev.tommyjs.craftreel.protocol.scoreboard.ObjectiveInfo;
 import dev.tommyjs.craftreel.protocol.scoreboard.ScoreboardRenderType;
+import dev.tommyjs.craftreel.replay.ViewerHandover;
 import dev.tommyjs.craftreel.replay.base.BaseResources;
 import dev.tommyjs.craftreel.replay.reference.ContextGroup;
 import dev.tommyjs.craftreel.replay.reference.Viewable;
@@ -21,6 +22,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -111,12 +113,37 @@ public final class ObjectiveActor extends AbstractActor implements Viewable {
         }
     }
 
+    @Override
+    public void handOff(@NotNull Player player, @NotNull ViewerHandover handover) {
+        if (viewers.remove(player) && info != null) {
+            handover.hold(List.of(ObjectiveActor.class, name), this, () -> hide(player));
+        }
+    }
+
+    @Override
+    public void takeOver(@NotNull Player player, @NotNull ViewerHandover handover) {
+        viewers.add(player);
+        if (!handover.claim(List.of(ObjectiveActor.class, name))) {
+            show(player);
+            return;
+        }
+        if (info != null) {
+            send(player, new WrapperPlayServerScoreboardObjective(name, ObjectiveMode.UPDATE,
+                info.displayName(), renderType(info.renderType())));
+            sendSlotAndScores(player);
+        }
+    }
+
     private void show(Player player) {
         if (info == null) {
             return;
         }
         send(player, new WrapperPlayServerScoreboardObjective(name, ObjectiveMode.CREATE,
             info.displayName(), renderType(info.renderType())));
+        sendSlotAndScores(player);
+    }
+
+    private void sendSlotAndScores(Player player) {
         if (info.slot() != null) {
             send(player, new WrapperPlayServerDisplayScoreboard(info.slot(), name));
         }

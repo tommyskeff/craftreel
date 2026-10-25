@@ -21,8 +21,8 @@ public class MobActor extends AbstractTrackedActor {
             int objectData = meta.objectData();
             install(meta.id(), meta.worldId(), tracker ->
                 EntityTypes.isTypeInstanceOf(type, EntityTypes.LIVINGENTITY)
-                    ? tracker.spawnMob(type, ORIGIN)
-                    : tracker.spawnObject(type, ORIGIN, objectData));
+                    ? tracker.spawnMob(recordedEntityId(), type, ORIGIN)
+                    : tracker.spawnObject(recordedEntityId(), type, ORIGIN, objectData));
         });
     }
 

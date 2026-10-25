@@ -1,5 +1,6 @@
 package dev.tommyjs.craftreel.replay.base.actor;
 
+import dev.tommyjs.craftreel.replay.ViewerHandover;
 import dev.tommyjs.craftreel.replay.base.BaseResources;
 import dev.tommyjs.craftreel.replay.base.ViewerContexts;
 import dev.tommyjs.craftreel.replay.handler.SpectatorRegistry;
@@ -69,6 +70,17 @@ public final class ContextGroupActor<M> extends AbstractActor implements Context
     @Override
     public void removeViewer(@NotNull Player player) {
         group.removeViewer(player);
+    }
+
+    @Override
+    public void handOff(@NotNull Player player, @NotNull ViewerHandover handover) {
+        group.handOff(player, handover);
+    }
+
+    @Override
+    public void takeOver(@NotNull Player player, @NotNull ViewerHandover handover) {
+        ViewerContexts.makeExclusive(scene.getResourceManager(), key, this, player);
+        group.takeOver(player, handover);
     }
 
 }

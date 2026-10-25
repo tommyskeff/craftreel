@@ -10,6 +10,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTe
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTeams.TeamMode;
 import dev.tommyjs.craftreel.protocol.CraftReelProtocol;
 import dev.tommyjs.craftreel.protocol.team.TeamInfo;
+import dev.tommyjs.craftreel.replay.ViewerHandover;
 import dev.tommyjs.craftreel.replay.base.BaseResources;
 import dev.tommyjs.craftreel.replay.reference.ContextGroup;
 import dev.tommyjs.craftreel.replay.reference.Viewable;
@@ -20,6 +21,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -103,6 +105,28 @@ public final class TeamActor extends AbstractActor implements Viewable {
     public void removeViewer(@NotNull Player player) {
         if (viewers.remove(player) && player.isOnline()) {
             hide(player);
+        }
+    }
+
+    @Override
+    public void handOff(@NotNull Player player, @NotNull ViewerHandover handover) {
+        if (viewers.remove(player) && info != null) {
+            handover.hold(List.of(TeamActor.class, name), this, () -> hide(player));
+        }
+    }
+
+    @Override
+    public void takeOver(@NotNull Player player, @NotNull ViewerHandover handover) {
+        viewers.add(player);
+        if (!handover.claim(List.of(TeamActor.class, name))) {
+            show(player);
+            return;
+        }
+        if (info != null) {
+            send(player, new WrapperPlayServerTeams(name, TeamMode.UPDATE, info(info)));
+            if (!members.isEmpty()) {
+                send(player, new WrapperPlayServerTeams(name, TeamMode.ADD_ENTITIES, Optional.empty(), members));
+            }
         }
     }
 

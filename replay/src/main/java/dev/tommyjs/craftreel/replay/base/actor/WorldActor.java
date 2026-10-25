@@ -1,6 +1,8 @@
 package dev.tommyjs.craftreel.replay.base.actor;
 
+import dev.tommyjs.craftreel.replay.ViewerHandover;
 import dev.tommyjs.craftreel.util.Identifier;
+import dev.tommyjs.dynworld.entity.EntityIdAllocator;
 import dev.tommyjs.dynworld.entity.EntityTracker;
 import dev.tommyjs.dynworld.world.DynamicWorld;
 import dev.tommyjs.dynworld.world.DynamicWorldManager;
@@ -28,7 +30,10 @@ public final class WorldActor extends AbstractActor implements WorldContext {
     private DynamicWorld world;
     private Location spawn;
 
-    private final EntityTracker tracker = EntityTracker.create();
+    public static final int RECORDED_ID_LIMIT = 1 << 29;
+
+    private final EntityTracker tracker = EntityTracker.create(
+        EntityIdAllocator.range(EntityTracker.DEFAULT_MIN_ID + RECORDED_ID_LIMIT, Integer.MAX_VALUE));
     private final ViewerGroup group = new ViewerGroup();
 
     @Override
@@ -56,6 +61,21 @@ public final class WorldActor extends AbstractActor implements WorldContext {
                 @Override
                 public void removeViewer(@NotNull Player player) {
                     tracker.removeViewer(player);
+                }
+
+                @Override
+                public void handOff(@NotNull Player player, @NotNull ViewerHandover handover) {
+                    handover.hold(EntityTracker.class, tracker, () -> tracker.removeViewer(player));
+                }
+
+                @Override
+                public void takeOver(@NotNull Player player, @NotNull ViewerHandover handover) {
+                    EntityTracker previous = handover.take(EntityTracker.class, EntityTracker.class);
+                    if (previous == null) {
+                        tracker.addViewer(player);
+                    } else {
+                        previous.transferViewer(player, tracker);
+                    }
                 }
             });
 
@@ -127,6 +147,26 @@ public final class WorldActor extends AbstractActor implements WorldContext {
     @Override
     public void removeViewer(@NotNull Player player) {
         group.removeViewer(player);
+    }
+
+    @Override
+    public void handOff(@NotNull Player player, @NotNull ViewerHandover handover) {
+        group.handOff(player, handover);
+        handover.hold(WorldActor.class, this, null);
+    }
+
+    @Override
+    public void takeOver(@NotNull Player player, @NotNull ViewerHandover handover) {
+        if (handover.take(WorldActor.class, WorldActor.class) == null) {
+            addViewer(player);
+            return;
+        }
+
+        ViewerContexts.makeExclusive(scene.getResourceManager(), BaseResources.WORLD, this, player);
+        Location at = player.getLocation();
+        at.setWorld(world.getBukkitWorld());
+        handover.changeWorld(at);
+        group.takeOver(player, handover);
     }
 
 }

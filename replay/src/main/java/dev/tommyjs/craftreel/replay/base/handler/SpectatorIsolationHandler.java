@@ -27,14 +27,19 @@ public class SpectatorIsolationHandler extends ReplayHandler {
 
     @EventHandler
     public void onJoin(PlayerJoinReplayEvent event) {
-        if (event.getReplay() == getReplay()) {
+        if (event.getReplay() != getReplay()) {
+            return;
+        }
+        if (event.isTransfer()) {
+            regroup(event.getPlayer());
+        } else {
             isolate(event.getPlayer());
         }
     }
 
     @EventHandler
     public void onLeave(PlayerLeaveReplayEvent event) {
-        if (event.getReplay() == getReplay() && event.getPlayer().isOnline()) {
+        if (event.getReplay() == getReplay() && !event.isTransfer() && event.getPlayer().isOnline()) {
             reveal(event.getPlayer());
         }
     }
@@ -59,6 +64,20 @@ public class SpectatorIsolationHandler extends ReplayHandler {
         for (Player other : Bukkit.getOnlinePlayers()) {
             if (!other.equals(viewer) && shouldHide(viewer, other)) {
                 hide(viewer, other);
+            }
+        }
+    }
+
+    private void regroup(Player viewer) {
+        for (Player other : Bukkit.getOnlinePlayers()) {
+            if (other.equals(viewer)) {
+                continue;
+            }
+            if (shouldHide(viewer, other)) {
+                hide(viewer, other);
+            } else {
+                viewer.showPlayer(other);
+                other.showPlayer(viewer);
             }
         }
     }

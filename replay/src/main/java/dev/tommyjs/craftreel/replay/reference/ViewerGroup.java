@@ -1,5 +1,6 @@
 package dev.tommyjs.craftreel.replay.reference;
 
+import dev.tommyjs.craftreel.replay.ViewerHandover;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,6 +26,24 @@ public final class ViewerGroup implements Viewable {
         if (viewers.remove(player)) {
             for (Viewable member : List.copyOf(members)) {
                 member.removeViewer(player);
+            }
+        }
+    }
+
+    @Override
+    public void handOff(@NotNull Player player, @NotNull ViewerHandover handover) {
+        if (viewers.remove(player)) {
+            for (Viewable member : List.copyOf(members)) {
+                member.handOff(player, handover);
+            }
+        }
+    }
+
+    @Override
+    public void takeOver(@NotNull Player player, @NotNull ViewerHandover handover) {
+        if (viewers.add(player)) {
+            for (Viewable member : List.copyOf(members)) {
+                member.takeOver(player, handover);
             }
         }
     }

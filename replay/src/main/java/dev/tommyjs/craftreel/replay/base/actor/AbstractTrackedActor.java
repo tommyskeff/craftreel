@@ -99,6 +99,14 @@ public abstract class AbstractTrackedActor extends AbstractActor {
         onEntitySpawned(entity);
     }
 
+    protected final int recordedEntityId() {
+        long id = getEntityId();
+        if (id < 0 || id >= WorldActor.RECORDED_ID_LIMIT) {
+            throw new IllegalStateException("recorded entity id " + id + " is out of range");
+        }
+        return EntityTracker.DEFAULT_MIN_ID + (int) id;
+    }
+
     protected final @Nullable WorldContext world() {
         return world;
     }

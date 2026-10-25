@@ -4,6 +4,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerListHeaderAndFooter;
 import dev.tommyjs.craftreel.util.Identifier;
 import dev.tommyjs.craftreel.protocol.CraftReelProtocol;
+import dev.tommyjs.craftreel.replay.ViewerHandover;
 import dev.tommyjs.craftreel.replay.base.BaseResources;
 import dev.tommyjs.craftreel.replay.base.ViewerContexts;
 import dev.tommyjs.craftreel.replay.handler.SpectatorRegistry;
@@ -68,6 +69,19 @@ public final class TabHeaderActor extends AbstractActor implements ViewerContext
         if (viewers.remove(player) && player.isOnline()) {
             clear(player);
         }
+    }
+
+    @Override
+    public void handOff(@NotNull Player player, @NotNull ViewerHandover handover) {
+        if (viewers.remove(player)) {
+            handover.hold(TabHeaderActor.class, this, () -> clear(player));
+        }
+    }
+
+    @Override
+    public void takeOver(@NotNull Player player, @NotNull ViewerHandover handover) {
+        handover.claim(TabHeaderActor.class);
+        addViewer(player);
     }
 
     private void refresh() {

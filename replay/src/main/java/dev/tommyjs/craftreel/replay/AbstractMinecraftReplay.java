@@ -157,6 +157,41 @@ public abstract class AbstractMinecraftReplay implements MinecraftReplay {
     }
 
     @Override
+    public void transferViewer(Player player, MinecraftReplay target, ViewerWorldChange worldChange) {
+        if (target == this) {
+            return;
+        }
+        if (!(target instanceof AbstractMinecraftReplay to) || !viewers.contains(player.getUniqueId())
+            || to.isViewer(player)) {
+            removeViewer(player);
+            target.addViewer(player);
+            return;
+        }
+
+        ViewerHandover handover = new ViewerHandover(player, worldChange);
+        viewers.remove(player.getUniqueId());
+        ReplaySpectatorImpl spectator = spectators.remove(player.getUniqueId());
+        if (spectator != null) {
+            spectator.handOffAll(handover);
+        }
+        Bukkit.getPluginManager().callEvent(new PlayerLeaveReplayEvent(this, player, handover));
+        to.adopt(player, handover);
+        handover.finish();
+    }
+
+    private void adopt(Player player, ViewerHandover handover) {
+        viewers.add(player.getUniqueId());
+        ReplaySpectatorImpl spectator = new ReplaySpectatorImpl(player);
+        spectators.put(player.getUniqueId(), spectator);
+        spectator.handover = handover;
+        try {
+            Bukkit.getPluginManager().callEvent(new PlayerJoinReplayEvent(this, player, spectator, handover));
+        } finally {
+            spectator.handover = null;
+        }
+    }
+
+    @Override
     public Collection<Player> getOnlineViewers() {
         List<Player> online = new ArrayList<>();
         for (UUID id : viewers) {
@@ -194,6 +229,7 @@ public abstract class AbstractMinecraftReplay implements MinecraftReplay {
 
         private final Player player;
         private final Set<ViewerContext> attached = new LinkedHashSet<>();
+        private ViewerHandover handover;
 
         private ReplaySpectatorImpl(Player player) {
             this.player = player;
@@ -206,7 +242,12 @@ public abstract class AbstractMinecraftReplay implements MinecraftReplay {
 
         @Override
         public void attach(@NotNull ViewerContext context) {
-            if (attached.add(context)) {
+            if (!attached.add(context)) {
+                return;
+            }
+            if (handover != null) {
+                context.takeOver(player, handover);
+            } else {
                 context.addViewer(player);
             }
         }
@@ -231,6 +272,13 @@ public abstract class AbstractMinecraftReplay implements MinecraftReplay {
         private void detachAll() {
             for (ViewerContext context : new ArrayList<>(attached)) {
                 context.removeViewer(player);
+            }
+            attached.clear();
+        }
+
+        private void handOffAll(ViewerHandover handover) {
+            for (ViewerContext context : new ArrayList<>(attached)) {
+                context.handOff(player, handover);
             }
             attached.clear();
         }

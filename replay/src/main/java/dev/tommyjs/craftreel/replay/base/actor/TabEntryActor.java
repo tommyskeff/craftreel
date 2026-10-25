@@ -10,6 +10,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPl
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfo.PlayerData;
 import dev.tommyjs.craftreel.protocol.CraftReelProtocol;
 import dev.tommyjs.craftreel.protocol.tab.TabEntryState;
+import dev.tommyjs.craftreel.replay.ViewerHandover;
 import dev.tommyjs.craftreel.replay.base.BaseResources;
 import dev.tommyjs.craftreel.replay.reference.ContextGroup;
 import dev.tommyjs.craftreel.replay.reference.Viewable;
@@ -106,6 +107,31 @@ public final class TabEntryActor extends AbstractActor implements Viewable {
         if (viewers.remove(player) && player.isOnline()) {
             hide(player);
         }
+    }
+
+    @Override
+    public void handOff(@NotNull Player player, @NotNull ViewerHandover handover) {
+        if (viewers.remove(player) && state != null) {
+            handover.hold(handoverKey(), this, () -> hide(player));
+        }
+    }
+
+    @Override
+    public void takeOver(@NotNull Player player, @NotNull ViewerHandover handover) {
+        viewers.add(player);
+        if (!handover.claim(handoverKey())) {
+            show(player);
+            return;
+        }
+        if (state != null) {
+            send(player, packet(Action.UPDATE_GAME_MODE));
+            send(player, packet(Action.UPDATE_LATENCY));
+            send(player, packet(Action.UPDATE_DISPLAY_NAME));
+        }
+    }
+
+    private List<Object> handoverKey() {
+        return List.of(TabEntryActor.class, profile.getUUID());
     }
 
     private void show(Player player) {
