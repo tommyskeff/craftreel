@@ -91,6 +91,14 @@ recording.addTickListener(() -> {
 });
 ```
 
+Cancel `EntityRecordEvent` to keep an entity out of the recording when it is
+first seen. To drop one that is already being recorded, such as a player who
+has just become a spectator, release it; it leaves the replay at that frame:
+
+```java
+worldRecorder.release(player);
+```
+
 The text-layer recorders capture HUD elements as Adventure components. Each has
 an `attachDefault(recording)` for the common single-instance case:
 

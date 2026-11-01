@@ -46,6 +46,14 @@ public final class EntityCaptureRegistry implements WorldAccessListener {
         }
     }
 
+    public void release(Entity entity) {
+        EntityCapture capture = captures.remove(entity.getUniqueId());
+        if (capture != null) {
+            capture.markRemoved();
+            capture.stop();
+        }
+    }
+
     @Override
     public void onEntityAdd(Object nmsEntity) {
         Entity entity = NmsAccess.getBukkitEntity(nmsEntity);
@@ -58,11 +66,7 @@ public final class EntityCaptureRegistry implements WorldAccessListener {
     public void onEntityRemove(Object nmsEntity) {
         Entity entity = NmsAccess.getBukkitEntity(nmsEntity);
         if (entity != null) {
-            EntityCapture capture = captures.remove(entity.getUniqueId());
-            if (capture != null) {
-                capture.markRemoved();
-                capture.stop();
-            }
+            release(entity);
         }
     }
 
