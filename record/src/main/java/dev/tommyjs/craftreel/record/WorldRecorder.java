@@ -172,6 +172,21 @@ public final class WorldRecorder {
         worldEffect.onSound(sound, x, y, z, volume, pitch);
     }
 
+    public void recordParticle(String particle, double x, double y, double z, float offsetX, float offsetY,
+                               float offsetZ, float speed, int count) {
+        if (!active || stopped) {
+            return;
+        }
+        worldEffect.recordParticle(particle, x, y, z, offsetX, offsetY, offsetZ, speed, count);
+    }
+
+    public void recordWorldEvent(int type, int x, int y, int z, int data) {
+        if (!active || stopped) {
+            return;
+        }
+        worldEffect.onWorldEvent(type, x, y, z, data);
+    }
+
     public void setBounds(int minChunkX, int minChunkZ, int maxChunkX, int maxChunkZ) {
         if (!active || stopped) {
             return;
@@ -190,6 +205,13 @@ public final class WorldRecorder {
             return;
         }
         registry.release(entity);
+    }
+
+    public void capture(Entity entity) {
+        if (!active || stopped || entity.getWorld() != world || !entity.isValid()) {
+            return;
+        }
+        registry.add(entity);
     }
 
     public World getWorld() {

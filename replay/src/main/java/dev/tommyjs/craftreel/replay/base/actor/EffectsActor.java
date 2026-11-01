@@ -1,6 +1,7 @@
 package dev.tommyjs.craftreel.replay.base.actor;
 
 import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.particle.Particle;
 import com.github.retrooper.packetevents.protocol.particle.type.ParticleType;
 import com.github.retrooper.packetevents.protocol.particle.type.ParticleTypes;
@@ -22,6 +23,8 @@ import dev.tommyjs.craftreel.replay.reference.Viewable;
 import dev.tommyjs.craftreel.replay.reference.ViewerSet;
 import dev.tommyjs.craftreel.replay.reference.WorldContext;
 import dev.tommyjs.craftreel.replay.base.BaseResources;
+import dev.tommyjs.craftreel.replay.base.LegacyParticle;
+import dev.tommyjs.craftreel.replay.base.LegacyParticlePacket;
 import dev.tommyjs.craftreel.protocol.block.BlockBreakProgress;
 import dev.tommyjs.craftreel.protocol.world.ExplosionEvent;
 import dev.tommyjs.craftreel.protocol.world.ParticleEvent;
@@ -105,11 +108,11 @@ public final class EffectsActor extends AbstractActor implements Viewable {
     }
 
     private void playParticle(ParticleEvent event) {
-        ParticleType type = ParticleTypes.getByName(event.particle());
+        PacketWrapper<?> packet = particlePacket(event);
+        if (packet == null) {
+            return;
+        }
         Location location = new Location(world, event.x(), event.y(), event.z());
-        PacketWrapper<?> packet = new WrapperPlayServerParticle(new Particle(type), true,
-            new Vector3d(event.x(), event.y(), event.z()),
-            new Vector3f(event.offsetX(), event.offsetY(), event.offsetZ()), event.speed(), event.count());
         forViewersInRange(location, PARTICLE_RANGE, viewer -> send(viewer, packet));
     }
 
@@ -143,6 +146,26 @@ public final class EffectsActor extends AbstractActor implements Viewable {
             if (viewer.getLocation().distanceSquared(location) <= rangeSquared) {
                 action.accept(viewer);
             }
+        }
+    }
+
+    private static PacketWrapper<?> particlePacket(ParticleEvent event) {
+        LegacyParticle legacy = LegacyParticle.byName(event.particle());
+        if (legacy != null && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_13)) {
+            return new LegacyParticlePacket(legacy, event);
+        }
+
+        String name = legacy == null ? event.particle() : legacy.modernName();
+        ParticleType type = name == null ? null : ParticleTypes.getByName(name);
+        if (type == null) {
+            return null;
+        }
+        try {
+            return new WrapperPlayServerParticle(new Particle(type), true,
+                new Vector3d(event.x(), event.y(), event.z()),
+                new Vector3f(event.offsetX(), event.offsetY(), event.offsetZ()), event.speed(), event.count());
+        } catch (RuntimeException e) {
+            return null;
         }
     }
 

@@ -26,10 +26,14 @@ public final class WorldEffect implements WorldAccessListener {
     @Override
     public void onParticle(int particleId, boolean longDistance, double x, double y, double z,
                            double offsetX, double offsetY, double offsetZ, int[] data) {
+        recordParticle(particleName(NmsAccess.particleName(particleId), data), x, y, z,
+            (float) offsetX, (float) offsetY, (float) offsetZ, 1f, 0);
+    }
+
+    public void recordParticle(String particle, double x, double y, double z,
+                               float offsetX, float offsetY, float offsetZ, float speed, int count) {
         recorder.recordEvent(CraftReelProtocol.Tracks.PARTICLE,
-            new ParticleEvent(NmsAccess.particleName(particleId), x, y, z,
-                (float) offsetX, (float) offsetY, (float) offsetZ, 0f,
-                data == null ? 1 : Math.max(1, data.length)));
+            new ParticleEvent(particle, x, y, z, offsetX, offsetY, offsetZ, speed, count));
     }
 
     @Override
@@ -45,6 +49,17 @@ public final class WorldEffect implements WorldAccessListener {
 
     public void recordExplosion(double x, double y, double z, float strength) {
         recorder.recordEvent(CraftReelProtocol.Tracks.EXPLOSION, new ExplosionEvent(x, y, z, strength));
+    }
+
+    private static String particleName(String name, int[] data) {
+        if (data == null || data.length == 0 || !name.endsWith("_")) {
+            return name;
+        }
+        StringBuilder builder = new StringBuilder(name.substring(0, name.length() - 1));
+        for (int value : data) {
+            builder.append('_').append(value);
+        }
+        return builder.toString();
     }
 
 }
