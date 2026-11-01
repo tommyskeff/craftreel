@@ -185,6 +185,13 @@ public final class WorldRecorder {
         }
     }
 
+    public void release(Entity entity) {
+        if (!active || stopped) {
+            return;
+        }
+        registry.release(entity);
+    }
+
     public World getWorld() {
         return world;
     }
