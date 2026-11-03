@@ -142,10 +142,12 @@ public final class EntityCapture {
         }
     }
 
-    public void markRemoved() {
+    public void remove() {
         if (active && recorder != null) {
             recorder.recordState(CraftReelProtocol.Tracks.ENTITY_PRESENCE, new EntityPresence(false));
+            recorder.close();
         }
+        stop();
     }
 
     public void stop() {

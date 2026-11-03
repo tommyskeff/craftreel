@@ -49,8 +49,7 @@ public final class EntityCaptureRegistry implements WorldAccessListener {
     public void release(Entity entity) {
         EntityCapture capture = captures.remove(entity.getUniqueId());
         if (capture != null) {
-            capture.markRemoved();
-            capture.stop();
+            capture.remove();
         }
     }
 
