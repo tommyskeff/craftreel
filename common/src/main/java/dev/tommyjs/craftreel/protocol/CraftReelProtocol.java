@@ -29,6 +29,9 @@ import dev.tommyjs.craftreel.protocol.block.BlockBreakProgressModel;
 import dev.tommyjs.craftreel.protocol.world.ExplosionEvent;
 import dev.tommyjs.craftreel.protocol.world.ExplosionEventCodec;
 import dev.tommyjs.craftreel.protocol.world.ExplosionEventModel;
+import dev.tommyjs.craftreel.protocol.world.WorldBorderState;
+import dev.tommyjs.craftreel.protocol.world.WorldBorderStateCodec;
+import dev.tommyjs.craftreel.protocol.world.WorldBorderStateModel;
 import dev.tommyjs.craftreel.protocol.world.WorldEvent;
 import dev.tommyjs.craftreel.protocol.world.WorldEventCodec;
 import dev.tommyjs.craftreel.protocol.world.WorldEventModel;
@@ -147,6 +150,9 @@ public final class CraftReelProtocol {
 
         public static final TrackHandle<EnvironmentState, Void> WORLD_ENVIRONMENT =
             TrackHandle.of(track("world_environment"), EnvironmentState.class, Void.class);
+
+        public static final TrackHandle<WorldBorderState, Void> WORLD_BORDER =
+            TrackHandle.of(track("world_border"), WorldBorderState.class, Void.class);
 
         public static final TrackHandle<ChunkSectionMeta, Void> CHUNK_SECTION_META =
             TrackHandle.of(track("chunk_section_meta"), ChunkSectionMeta.class, Void.class);
@@ -304,6 +310,7 @@ public final class CraftReelProtocol {
             .register(Tracks.ENTITY_PRESENCE, new EntityPresenceModel(), new EntityPresenceStateCodec())
             .register(Tracks.ENTITY_POTION, new EntityPotionEffectStateModel(), new EntityPotionEffectStateCodec())
             .register(Tracks.WORLD_ENVIRONMENT, new EnvironmentStateModel(), new EnvironmentStateCodec())
+            .register(Tracks.WORLD_BORDER, new WorldBorderStateModel(), new WorldBorderStateCodec())
             .register(Tracks.SOUND, new SoundEventModel(), new SoundEventCodec())
             .register(Tracks.PARTICLE, new ParticleEventModel(), new ParticleEventCodec())
             .register(Tracks.EXPLOSION, new ExplosionEventModel(), new ExplosionEventCodec())
