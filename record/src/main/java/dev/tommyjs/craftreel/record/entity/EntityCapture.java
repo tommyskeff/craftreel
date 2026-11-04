@@ -180,7 +180,7 @@ public final class EntityCapture {
         }
 
         recorder = recording.getRecorder().createEntity(CraftReelProtocol.Entities.ENTITY);
-        recorder.recordState(CraftReelProtocol.Tracks.ENTITY_META, new EntityMeta(UUID.randomUUID(), worldId, type, objectDataOf(entity)));
+        recorder.recordState(CraftReelProtocol.Tracks.ENTITY_META, new EntityMeta(UUID.randomUUID(), worldId, type.getName().toString(), objectDataOf(entity)));
         recorder.recordState(CraftReelProtocol.Tracks.ENTITY_POSE, pose);
         recorder.recordState(CraftReelProtocol.Tracks.ENTITY_PRESENCE, new EntityPresence(true));
         recordEquipment();

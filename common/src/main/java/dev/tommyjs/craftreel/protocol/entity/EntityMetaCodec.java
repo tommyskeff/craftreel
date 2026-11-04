@@ -1,7 +1,5 @@
 package dev.tommyjs.craftreel.protocol.entity;
 
-import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import dev.tommyjs.craftreel.util.Identifier;
 import dev.tommyjs.reel.track.codec.Codec;
 import dev.tommyjs.reel.track.codec.StringCodec;
@@ -17,7 +15,7 @@ public class EntityMetaCodec implements Codec<EntityMeta> {
     public void encode(@NotNull ByteBuf buffer, @NotNull EntityMeta meta) {
         UuidCodec.INSTANCE.encode(buffer, meta.id());
         Identifier.CODEC.encode(buffer, meta.worldId());
-        StringCodec.INSTANCE.encode(buffer, meta.type().getName().toString());
+        StringCodec.INSTANCE.encode(buffer, meta.type());
         buffer.writeInt(meta.objectData());
     }
 
@@ -25,7 +23,7 @@ public class EntityMetaCodec implements Codec<EntityMeta> {
     public @NotNull EntityMeta decode(@NotNull ByteBuf buffer) {
         UUID id = UuidCodec.INSTANCE.decode(buffer);
         Identifier worldId = Identifier.CODEC.decode(buffer);
-        EntityType type = EntityTypes.getByName(StringCodec.INSTANCE.decode(buffer));
+        String type = StringCodec.INSTANCE.decode(buffer);
         int objectData = buffer.readInt();
         return new EntityMeta(id, worldId, type, objectData);
     }

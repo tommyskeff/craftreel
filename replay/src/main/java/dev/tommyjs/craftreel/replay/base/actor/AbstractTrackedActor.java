@@ -63,16 +63,36 @@ public abstract class AbstractTrackedActor extends AbstractActor {
 
         onState(CraftReelProtocol.Tracks.ENTITY_POSE, true, pose -> {
             this.pose = toPose(pose);
-            entity.move(this.pose, transition.isSingleForwardStep());
+            if (entity != null) {
+                entity.move(this.pose, transition.isSingleForwardStep());
+            }
         });
-        onState(CraftReelProtocol.Tracks.ENTITY_METADATA, true, state -> entity.setMetadata(toEntityData(state)));
-        onState(CraftReelProtocol.Tracks.ENTITY_EQUIPMENT, true, state -> entity.setEquipment(toEquipment(state)));
+        onState(CraftReelProtocol.Tracks.ENTITY_METADATA, true, state -> {
+            if (entity != null) {
+                entity.setMetadata(toEntityData(state));
+            }
+        });
+        onState(CraftReelProtocol.Tracks.ENTITY_EQUIPMENT, true, state -> {
+            if (entity != null) {
+                entity.setEquipment(toEquipment(state));
+            }
+        });
         onState(CraftReelProtocol.Tracks.ENTITY_PRESENCE, true, state -> {
             this.present = state.present();
-            entity.setPresent(this.present);
+            if (entity != null) {
+                entity.setPresent(this.present);
+            }
         });
-        onEvent(CraftReelProtocol.Tracks.ENTITY_VELOCITY, velocity -> entity.setVelocity(new Vector3d(velocity.x(), velocity.y(), velocity.z())));
-        onEvent(CraftReelProtocol.Tracks.ENTITY_ANIMATION, this::animate);
+        onEvent(CraftReelProtocol.Tracks.ENTITY_VELOCITY, velocity -> {
+            if (entity != null) {
+                entity.setVelocity(new Vector3d(velocity.x(), velocity.y(), velocity.z()));
+            }
+        });
+        onEvent(CraftReelProtocol.Tracks.ENTITY_ANIMATION, type -> {
+            if (entity != null) {
+                animate(type);
+            }
+        });
 
         onDestroy(() -> {
             if (entityKey != null) {
