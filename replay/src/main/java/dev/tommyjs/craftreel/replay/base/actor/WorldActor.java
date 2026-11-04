@@ -18,6 +18,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.WorldBorder;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,6 +26,8 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 public final class WorldActor extends AbstractActor implements WorldContext {
+
+    private static final double MILLIS_PER_SECOND = 1000.0;
 
     private Identifier id;
     private DynamicWorld world;
@@ -88,6 +91,23 @@ public final class WorldActor extends AbstractActor implements WorldContext {
             bukkit.setStorm(environment.storm());
             bukkit.setThundering(environment.thundering());
             pinWeather(bukkit);
+        });
+
+        onState(CraftReelProtocol.Tracks.WORLD_BORDER, true, state -> {
+            WorldBorder border = world.getBukkitWorld().getWorldBorder();
+            if (border.getCenter().getX() != state.centerX() || border.getCenter().getZ() != state.centerZ()) {
+                border.setCenter(state.centerX(), state.centerZ());
+            }
+            if (border.getWarningDistance() != state.warningBlocks()) {
+                border.setWarningDistance(state.warningBlocks());
+            }
+            if (border.getWarningTime() != state.warningSeconds()) {
+                border.setWarningTime(state.warningSeconds());
+            }
+            border.setSize(state.diameter());
+            if (state.resizing()) {
+                border.setSize(state.targetDiameter(), Math.max(1L, Math.round(state.remainingMillis() / MILLIS_PER_SECOND)));
+            }
         });
 
         onDestroy(() -> {
