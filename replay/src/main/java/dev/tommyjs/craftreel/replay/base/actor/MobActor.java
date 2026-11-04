@@ -17,7 +17,10 @@ public class MobActor extends AbstractTrackedActor {
     @Override
     protected void registerCreate() {
         onCreate(CraftReelProtocol.Tracks.ENTITY_META, meta -> {
-            EntityType type = meta.type();
+            EntityType type = EntityTypes.getByName(meta.type());
+            if (type == null) {
+                return;
+            }
             int objectData = meta.objectData();
             install(meta.id(), meta.worldId(), tracker ->
                 EntityTypes.isTypeInstanceOf(type, EntityTypes.LIVINGENTITY)
