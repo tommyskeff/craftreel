@@ -31,6 +31,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.ExplosionPrimeEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
+import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
@@ -151,6 +152,19 @@ public final class WorldRecorder {
                 EntityCapture capture = registry.byEntity(event.getEntity());
                 if (capture != null) {
                     capture.onAnimation(EntityAnimationType.HURT);
+                }
+            }
+
+            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+            public void onPickup(PlayerPickupItemEvent event) {
+                if (event.getPlayer().getWorld() != world) {
+                    return;
+                }
+                EntityCapture item = registry.byEntity(event.getItem());
+                EntityCapture collector = registry.byEntity(event.getPlayer());
+                int amount = event.getItem().getItemStack().getAmount() - event.getRemaining();
+                if (item != null && collector != null && amount > 0) {
+                    item.onCollected(collector, amount);
                 }
             }
 

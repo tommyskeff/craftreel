@@ -232,6 +232,9 @@ public final class CraftReelProtocol {
         public static final TrackHandle<Void, EntityVelocity> ENTITY_VELOCITY =
             TrackHandle.of(track("entity_velocity"), Void.class, EntityVelocity.class);
 
+        public static final TrackHandle<Void, EntityCollect> ENTITY_COLLECT =
+            TrackHandle.of(track("entity_collect"), Void.class, EntityCollect.class);
+
         public static final TrackHandle<EntityPresence, Void> ENTITY_PRESENCE =
             TrackHandle.of(track("entity_presence"), EntityPresence.class, Void.class);
 
@@ -307,6 +310,7 @@ public final class CraftReelProtocol {
             .register(Tracks.ENTITY_EQUIPMENT, new EntityEquipmentModel(), new EntityEquipmentStateCodec(), new EntityEquipmentDeltaCodec())
             .register(Tracks.ENTITY_ANIMATION, new EntityAnimationModel(), new EntityAnimationCodec())
             .register(Tracks.ENTITY_VELOCITY, new EntityVelocityModel(), new EntityVelocityCodec())
+            .register(Tracks.ENTITY_COLLECT, new EntityCollectModel(), new EntityCollectCodec())
             .register(Tracks.ENTITY_PRESENCE, new EntityPresenceModel(), new EntityPresenceStateCodec())
             .register(Tracks.ENTITY_POTION, new EntityPotionEffectStateModel(), new EntityPotionEffectStateCodec())
             .register(Tracks.WORLD_ENVIRONMENT, new EnvironmentStateModel(), new EnvironmentStateCodec())

@@ -5,6 +5,7 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import dev.tommyjs.craftreel.util.Identifier;
 import dev.tommyjs.craftreel.protocol.CraftReelProtocol;
+import dev.tommyjs.craftreel.protocol.entity.EntityCollect;
 import dev.tommyjs.craftreel.protocol.entity.EntityEquipment;
 import dev.tommyjs.craftreel.protocol.block.BlockState;
 import dev.tommyjs.craftreel.protocol.entity.EntityMeta;
@@ -39,6 +40,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.ThrownPotion;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -58,6 +60,7 @@ public final class EntityCapture {
     private final Entity entity;
     private final Identifier worldId;
 
+    private final UUID id = UUID.randomUUID();
     private EntityRecorder recorder;
     private EntityPose lastPose;
     private EntityPose lastKeyframe;
@@ -150,6 +153,16 @@ public final class EntityCapture {
         }
     }
 
+    public @NotNull UUID id() {
+        return id;
+    }
+
+    public void onCollected(@NotNull EntityCapture collector, int amount) {
+        if (active && recorder != null) {
+            recorder.recordEvent(CraftReelProtocol.Tracks.ENTITY_COLLECT, new EntityCollect(collector.id(), amount));
+        }
+    }
+
     public void remove() {
         if (active && recorder != null) {
             recorder.recordState(CraftReelProtocol.Tracks.ENTITY_PRESENCE, new EntityPresence(false));
@@ -172,7 +185,7 @@ public final class EntityCapture {
         if (entity instanceof Player player) {
             recorder = recording.getRecorder().createEntity(CraftReelProtocol.Entities.PLAYER);
             String[] skin = extractSkin(player);
-            recorder.recordState(CraftReelProtocol.Tracks.PLAYER_META, new PlayerMeta(UUID.randomUUID(), worldId,
+            recorder.recordState(CraftReelProtocol.Tracks.PLAYER_META, new PlayerMeta(id, worldId,
                 extractProfileId(player), player.getName(), skin == null ? null : skin[0], skin == null ? null : skin[1]));
             recorder.recordState(CraftReelProtocol.Tracks.ENTITY_POSE, pose);
             recorder.recordState(CraftReelProtocol.Tracks.ENTITY_PRESENCE, new EntityPresence(true));
@@ -188,7 +201,7 @@ public final class EntityCapture {
         }
 
         recorder = recording.getRecorder().createEntity(CraftReelProtocol.Entities.ENTITY);
-        recorder.recordState(CraftReelProtocol.Tracks.ENTITY_META, new EntityMeta(UUID.randomUUID(), worldId, type.getName().toString(), objectDataOf(entity)));
+        recorder.recordState(CraftReelProtocol.Tracks.ENTITY_META, new EntityMeta(id, worldId, type.getName().toString(), objectDataOf(entity)));
         recorder.recordState(CraftReelProtocol.Tracks.ENTITY_POSE, pose);
         recorder.recordState(CraftReelProtocol.Tracks.ENTITY_PRESENCE, new EntityPresence(true));
         recordEquipment();
