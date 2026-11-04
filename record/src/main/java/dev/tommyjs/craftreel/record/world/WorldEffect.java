@@ -12,6 +12,8 @@ import dev.tommyjs.reel.recorder.EntityRecorder;
 
 public final class WorldEffect implements WorldAccessListener {
 
+    private static final String SILENT_SOUND = "none";
+
     private final EntityRecorder recorder;
 
     public WorldEffect(EntityRecorder recorder) {
@@ -20,6 +22,9 @@ public final class WorldEffect implements WorldAccessListener {
 
     @Override
     public void onSound(String sound, double x, double y, double z, float volume, float pitch) {
+        if (sound == null || sound.isEmpty() || sound.equals(SILENT_SOUND)) {
+            return;
+        }
         recorder.recordEvent(CraftReelProtocol.Tracks.SOUND, new SoundEvent(sound, x, y, z, volume, pitch));
     }
 
