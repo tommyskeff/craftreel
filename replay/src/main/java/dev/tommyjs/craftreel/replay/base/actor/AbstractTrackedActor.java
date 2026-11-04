@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.IntSupplier;
 
@@ -50,6 +51,14 @@ public abstract class AbstractTrackedActor extends AbstractActor {
     private WorldContext world;
     private EntityPose pose = ORIGIN;
     private boolean present = true;
+    private PendingInstall pendingInstall;
+    private boolean anchored;
+    private EntityMetadata pendingMetadata;
+    private EntityEquipment pendingEquipment;
+
+    private record PendingInstall(UUID id, Identifier worldId,
+                                  BiFunction<EntityTracker, dev.tommyjs.craftreel.protocol.entity.EntityPose, VirtualEntity> factory) {
+    }
 
     protected AbstractTrackedActor(@NotNull EntityPlaybackConfig config) {
         this.config = config;
@@ -63,18 +72,38 @@ public abstract class AbstractTrackedActor extends AbstractActor {
 
         onState(CraftReelProtocol.Tracks.ENTITY_POSE, true, pose -> {
             this.pose = toPose(pose);
-            if (entity != null) {
+            if (entity == null && pendingInstall != null) {
+                PendingInstall pending = pendingInstall;
+                pendingInstall = null;
+                install(pending.id(), pending.worldId(), tracker -> pending.factory().apply(tracker, pose));
+                anchored = true;
+                if (pendingMetadata != null) {
+                    entity.setMetadata(toEntityData(pendingMetadata));
+                }
+                if (pendingEquipment != null) {
+                    entity.setEquipment(toEquipment(pendingEquipment));
+                }
+                pendingMetadata = null;
+                pendingEquipment = null;
+                if (!present) {
+                    entity.setPresent(false);
+                }
+            } else if (entity != null && !anchored) {
                 entity.move(this.pose, transition.isSingleForwardStep());
             }
         });
         onState(CraftReelProtocol.Tracks.ENTITY_METADATA, true, state -> {
             if (entity != null) {
                 entity.setMetadata(toEntityData(state));
+            } else {
+                pendingMetadata = state;
             }
         });
         onState(CraftReelProtocol.Tracks.ENTITY_EQUIPMENT, true, state -> {
             if (entity != null) {
                 entity.setEquipment(toEquipment(state));
+            } else {
+                pendingEquipment = state;
             }
         });
         onState(CraftReelProtocol.Tracks.ENTITY_PRESENCE, true, state -> {
@@ -117,6 +146,11 @@ public abstract class AbstractTrackedActor extends AbstractActor {
         }
         scene.getResourceManager().publish(BaseResources.ENTITY_ID, id, (IntSupplier) entity::entityId);
         onEntitySpawned(entity);
+    }
+
+    protected void installOnFirstPose(@NotNull UUID id, @NotNull Identifier worldId,
+                                      @NotNull BiFunction<EntityTracker, dev.tommyjs.craftreel.protocol.entity.EntityPose, VirtualEntity> factory) {
+        this.pendingInstall = new PendingInstall(id, worldId, factory);
     }
 
     protected final int recordedEntityId() {
