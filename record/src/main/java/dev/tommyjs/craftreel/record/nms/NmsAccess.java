@@ -1,7 +1,9 @@
 package dev.tommyjs.craftreel.record.nms;
 
 import dev.tommyjs.dynworld.block.BlockState;
+import dev.tommyjs.craftreel.protocol.world.WorldBorderState;
 import org.bukkit.World;
+import org.bukkit.WorldBorder;
 import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +37,11 @@ public final class NmsAccess {
 
     private static final Method CRAFT_ITEMSTACK_AS_BUKKIT = findMethod(
         forName("org.bukkit.craftbukkit.v1_8_R3.inventory.CraftItemStack"), "asBukkitCopy", NMS_ITEMSTACK);
+
+    private static final Class<?> NMS_WORLD_BORDER = forName("net.minecraft.server.v1_8_R3.WorldBorder");
+    private static final Method WORLD_GET_WORLD_BORDER = findMethod(NMS_WORLD, "getWorldBorder");
+    private static final Method WORLD_BORDER_TARGET_SIZE = findMethod(NMS_WORLD_BORDER, "j");
+    private static final Method WORLD_BORDER_REMAINING_MILLIS = findMethod(NMS_WORLD_BORDER, "i");
 
     private static final Method CRAFT_ENTITY_GET_HANDLE = findMethod(
         forName("org.bukkit.craftbukkit.v1_8_R3.entity.CraftEntity"), "getHandle");
@@ -188,6 +195,19 @@ public final class NmsAccess {
             watchableValueField = field;
         }
         return field.get(watchable);
+    }
+
+    public static WorldBorderState readWorldBorder(World world) {
+        WorldBorder border = world.getWorldBorder();
+        try {
+            Object handle = WORLD_GET_WORLD_BORDER.invoke(CRAFT_WORLD_GET_HANDLE.invoke(world));
+            double target = (double) WORLD_BORDER_TARGET_SIZE.invoke(handle);
+            long remaining = (long) WORLD_BORDER_REMAINING_MILLIS.invoke(handle);
+            return new WorldBorderState(border.getCenter().getX(), border.getCenter().getZ(), border.getSize(), target,
+                Math.max(0L, remaining), border.getWarningDistance(), border.getWarningTime());
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("could not read the world border of " + world.getName(), e);
+        }
     }
 
 }

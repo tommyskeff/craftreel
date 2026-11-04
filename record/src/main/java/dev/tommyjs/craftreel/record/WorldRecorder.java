@@ -4,10 +4,12 @@ import dev.tommyjs.craftreel.protocol.CraftReelProtocol;
 import dev.tommyjs.craftreel.protocol.entity.EntityAnimationType;
 import dev.tommyjs.craftreel.protocol.world.Environment;
 import dev.tommyjs.craftreel.protocol.world.EnvironmentState;
+import dev.tommyjs.craftreel.protocol.world.WorldBorderState;
 import dev.tommyjs.craftreel.protocol.world.WorldMeta;
 import dev.tommyjs.craftreel.record.entity.EntityCapture;
 import dev.tommyjs.craftreel.record.entity.EntityCaptureRegistry;
 import dev.tommyjs.craftreel.record.event.WorldRecordEvent;
+import dev.tommyjs.craftreel.record.nms.NmsAccess;
 import dev.tommyjs.craftreel.record.nms.WorldAccessDispatcher;
 import dev.tommyjs.craftreel.record.nms.WorldAccessInjector;
 import dev.tommyjs.craftreel.record.world.ChunkBounds;
@@ -35,6 +37,8 @@ import org.jetbrains.annotations.Nullable;
 
 public final class WorldRecorder {
 
+    private static final int BORDER_RESYNC_TICKS = 20;
+
     private final MinecraftRecording recording;
     private final World world;
     private final ChunkBounds bounds;
@@ -48,6 +52,8 @@ public final class WorldRecorder {
     private WorldAccessDispatcher dispatcher;
     private Listener bukkitListener;
     private EnvironmentState lastEnvironment;
+    private WorldBorderState lastBorder;
+    private int borderTicksSinceRecord;
     private boolean stopped;
 
     public static WorldRecorder attach(MinecraftRecording recording, Identifier identifier, World world) {
@@ -251,6 +257,27 @@ public final class WorldRecorder {
             worldEntity.recordState(CraftReelProtocol.Tracks.WORLD_ENVIRONMENT, environment);
             lastEnvironment = environment;
         }
+        recordBorder();
+    }
+
+    private void recordBorder() {
+        WorldBorderState border = NmsAccess.readWorldBorder(world);
+        borderTicksSinceRecord++;
+        if (lastBorder == null || borderChanged(lastBorder, border)
+            || (border.resizing() && borderTicksSinceRecord >= BORDER_RESYNC_TICKS)) {
+            worldEntity.recordState(CraftReelProtocol.Tracks.WORLD_BORDER, border);
+            lastBorder = border;
+            borderTicksSinceRecord = 0;
+        }
+    }
+
+    private static boolean borderChanged(WorldBorderState before, WorldBorderState after) {
+        if (before.centerX() != after.centerX() || before.centerZ() != after.centerZ()
+            || before.targetDiameter() != after.targetDiameter() || before.warningBlocks() != after.warningBlocks()
+            || before.warningSeconds() != after.warningSeconds() || before.resizing() != after.resizing()) {
+            return true;
+        }
+        return after.resizing() && after.remainingMillis() > before.remainingMillis();
     }
 
     public void stop() {
