@@ -6,7 +6,11 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import dev.tommyjs.craftreel.util.Identifier;
 import dev.tommyjs.craftreel.protocol.CraftReelProtocol;
 import dev.tommyjs.craftreel.protocol.entity.EntityEquipment;
+import dev.tommyjs.craftreel.protocol.block.BlockState;
 import dev.tommyjs.craftreel.protocol.entity.EntityMeta;
+import dev.tommyjs.craftreel.protocol.entity.HangingFacing;
+import dev.tommyjs.craftreel.protocol.entity.ObjectData;
+import dev.tommyjs.craftreel.protocol.entity.PaintingArt;
 import dev.tommyjs.craftreel.protocol.entity.EntityMetadata;
 import dev.tommyjs.craftreel.protocol.entity.EntityPose;
 import dev.tommyjs.craftreel.protocol.entity.EntityPresence;
@@ -25,8 +29,12 @@ import dev.tommyjs.reel.recorder.EntityRecorder;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.FallingBlock;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Painting;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.ThrownPotion;
 import org.bukkit.potion.PotionEffect;
@@ -245,12 +253,35 @@ public final class EntityCapture {
         return LEGACY_TYPE_FALLBACK.get(entity.getType());
     }
 
+    @SuppressWarnings("deprecation")
     private static int objectDataOf(Entity entity) {
         if (entity instanceof ThrownPotion potion) {
             org.bukkit.inventory.ItemStack item = potion.getItem();
             return item == null ? 0 : item.getDurability();
         }
+        if (entity instanceof FallingBlock falling) {
+            return ObjectData.fallingBlock(BlockState.of(falling.getBlockId(), falling.getBlockData()));
+        }
+        if (entity instanceof ItemFrame frame) {
+            HangingFacing facing = hangingFacing(frame.getFacing());
+            return facing == null ? 0 : ObjectData.itemFrame(facing);
+        }
+        if (entity instanceof Painting painting) {
+            HangingFacing facing = hangingFacing(painting.getFacing());
+            PaintingArt art = PaintingArt.byId(painting.getArt().getId());
+            return facing == null || art == null ? 0 : ObjectData.painting(art, facing);
+        }
         return 0;
+    }
+
+    private static HangingFacing hangingFacing(BlockFace face) {
+        return switch (face) {
+            case SOUTH -> HangingFacing.SOUTH;
+            case WEST -> HangingFacing.WEST;
+            case NORTH -> HangingFacing.NORTH;
+            case EAST -> HangingFacing.EAST;
+            default -> null;
+        };
     }
 
     private static EntityVelocity velocityOf(Entity entity) {
