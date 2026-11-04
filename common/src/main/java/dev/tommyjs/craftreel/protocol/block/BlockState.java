@@ -19,8 +19,16 @@ public record BlockState(int id, int data) {
         return new BlockState(fullId & 0x0FFF, (fullId >> 12) & 0x000F);
     }
 
+    public static @NotNull BlockState ofSectionId(int sectionId) {
+        return new BlockState((sectionId >> 4) & 0x0FFF, sectionId & 0x000F);
+    }
+
     public int getFullId() {
         return id | (data << 12);
+    }
+
+    public int getSectionId() {
+        return (id << 4) | data;
     }
 
     public boolean isAir() {

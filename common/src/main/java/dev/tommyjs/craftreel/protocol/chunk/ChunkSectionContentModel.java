@@ -25,8 +25,7 @@ public class ChunkSectionContentModel implements TrackModel<ChunkSectionContent,
     }
 
     private static void setBlock(char[] section, ChunkSectionContentDelta.BlockDelta block) {
-        int index = ((block.y() & 0xF) << 8) | ((block.z() & 0xF) << 4) | (block.x() & 0xF);
-        section[index] = (char) ((block.after().id() << 4) | block.after().data());
+        section[ChunkSectionContent.index(block.x(), block.y(), block.z())] = (char) block.after().getSectionId();
     }
 
     @Override
