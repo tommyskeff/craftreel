@@ -8,12 +8,14 @@ import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.Equipment;
 import com.github.retrooper.packetevents.protocol.player.EquipmentSlot;
 import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCollectItem;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityAnimation;
 import dev.tommyjs.craftreel.util.Identifier;
 import dev.tommyjs.craftreel.protocol.CraftReelProtocol;
 import dev.tommyjs.craftreel.replay.base.BaseResources;
 import dev.tommyjs.craftreel.replay.reference.WorldContext;
 import dev.tommyjs.craftreel.protocol.entity.EntityAnimationType;
+import dev.tommyjs.craftreel.protocol.entity.EntityCollect;
 import dev.tommyjs.craftreel.protocol.entity.EntityEquipment;
 import dev.tommyjs.craftreel.protocol.entity.EntityMetadata;
 import dev.tommyjs.craftreel.protocol.item.ItemStack;
@@ -23,6 +25,8 @@ import dev.tommyjs.dynworld.entity.EntityTracker;
 import dev.tommyjs.dynworld.entity.PlayerEntity;
 import dev.tommyjs.dynworld.entity.VirtualEntity;
 import dev.tommyjs.reel.scene.AbstractActor;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -122,6 +126,7 @@ public abstract class AbstractTrackedActor extends AbstractActor {
                 animate(type);
             }
         });
+        onEvent(CraftReelProtocol.Tracks.ENTITY_COLLECT, this::collect);
 
         onDestroy(() -> {
             if (entityKey != null) {
@@ -181,6 +186,23 @@ public abstract class AbstractTrackedActor extends AbstractActor {
     }
 
     protected void onEntityRemoved(@NotNull VirtualEntity entity) {
+    }
+
+    private void collect(EntityCollect collect) {
+        if (entity == null || tracker == null) {
+            return;
+        }
+        IntSupplier collector = scene.getResourceManager().find(BaseResources.ENTITY_ID, collect.collectorId());
+        if (collector == null) {
+            return;
+        }
+        WrapperPlayServerCollectItem packet = new WrapperPlayServerCollectItem(entity.entityId(), collector.getAsInt(), collect.amount());
+        for (UUID viewerId : tracker.viewers()) {
+            Player viewer = Bukkit.getPlayer(viewerId);
+            if (viewer != null) {
+                PacketEvents.getAPI().getPlayerManager().sendPacket(viewer, packet);
+            }
+        }
     }
 
     private void animate(EntityAnimationType type) {
